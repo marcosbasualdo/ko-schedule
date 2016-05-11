@@ -155,13 +155,13 @@
                     var hour = (s % 24);
                     var block = new TimeBlock(hour);
 
-                    if(hour == timeToDecimal(this.options.dayStartsAt)){
+                    if(decimalToTime(hour) == this.options.dayStartsAt){
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
 
                     block.date = new Date(currentDate.getTime());
 
-                    if((hour == timeToDecimal(this.options.dayStartsAt)) || blocks.length == 0){
+                    if((decimalToTime(hour) == this.options.dayStartsAt) || blocks.length == 0){
                         block.displayDate = true;
                     }
                     block.id = currentDate.getTime()+'_'+block.time;
