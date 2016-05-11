@@ -143,7 +143,6 @@
         ScheduleWidgetViewModel.prototype.getTimeBlocks = function() {
             if(!_blocks){
                 var blocks = [];
-                var control = 0;
                 var currentDate = new Date(this.options.startDate.getTime());
                 currentDate.setDate(currentDate.getDate() - 1);
 
@@ -164,7 +163,7 @@
                     if((decimalToTime(hour) == this.options.dayStartsAt) || blocks.length == 0){
                         block.displayDate = true;
                     }
-                    block.id = currentDate.getTime()+'_'+block.time;
+                    block.id = currentDate.getTime()+'_'+block.label;
                     blocks.push(block);
                 };
                 _blocks = blocks;
