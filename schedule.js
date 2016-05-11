@@ -47,6 +47,9 @@
         var start = time.split(':');
         var sum = 0;
         for(var i = start.length - 1; i >= 0; i--){
+            if(i == 3){
+                sum = sum + (parseFloat(start[i] / 36000));
+            }
             if(i == 2){
                 sum = sum + (parseFloat(start[i] / 3600));
             }
@@ -61,9 +64,12 @@
     }
 
     function decimalToTime(decimal){
-        var hours = Math.floor(Math.floor((decimal * 1) % 60));
-        var minutes = Math.floor(Math.floor((decimal * 60) % 60));
-        var seconds = Math.floor(Math.floor((decimal * 3600) % 60));
+        var minThreshold = timeToDecimal('00:00:59');
+        var secThreshold = timeToDecimal('00:00:00:1');
+
+        var hours = Math.floor((decimal + minThreshold) % 60);
+        var minutes = Math.floor(Math.floor(((decimal * 60) + secThreshold) % 60));
+        var seconds = parseFloat(parseFloat((decimal * 3600) % 60).toFixed(2)) % 60;
 
         // TODO: This pad mapping can be simplified by right currying the pad function with 2.
         return [hours, minutes, seconds].map(function(n){return pad(n,2)}).join(':');
@@ -73,13 +79,18 @@
         return date.toLocaleString('en', {month: 'long', day: 'numeric'});
     }
 
-    function TimeBlock(label){
-        this.label = label;
-        this.time;
+    function TimeBlock(time){
+        this.time = time;
         this.date;
         this.displayDate = false;
         this.id;
     }
+
+    Object.defineProperty(TimeBlock.prototype, 'label', {
+        get:function(){
+            return decimalToTime(this.time);
+        }
+    });
 
     function Event(label, start, duration, date){
         this.label = label;
@@ -89,13 +100,14 @@
         this.id;
     }
 
+    Object.defineProperty(Event.prototype, 'end', {
+        get:function(){
+            return decimalToTime(timeToDecimal(this.start) + timeToDecimal(this.duration));
+        }
+    });
     function ViewModel() {
 
-        Object.defineProperty(Event.prototype, 'end', {
-            get:function(){
-                return decimalToTime(timeToDecimal(this.start) + timeToDecimal(this.duration));
-            }
-        });
+
 
         var _blocks;
 
@@ -134,30 +146,26 @@
                 var control = 0;
                 var currentDate = new Date(this.options.startDate.getTime());
                 currentDate.setDate(currentDate.getDate() - 1);
-                var end = this.start + this.duration;
-                for(var s = this.start; s < end; s++){
 
+                var blockSize = timeToDecimal(this.options.block);
+                var startTime = timeToDecimal(this.start);
+                var end = startTime + timeToDecimal(this.duration);
+
+                for(var s = startTime; s < end; s = s + blockSize){
                     var hour = (s % 24);
-                    var label = hour+':'+pad(control,2);
-                    var block = new TimeBlock(label);
-                    block.time = label;
-                    if(hour == this.options.dayStartsAt && control == 0){
+                    var block = new TimeBlock(hour);
+
+                    if(hour == timeToDecimal(this.options.dayStartsAt)){
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
 
                     block.date = new Date(currentDate.getTime());
 
-                    if((hour == this.options.dayStartsAt && control == 0) || blocks.length == 0){
+                    if((hour == timeToDecimal(this.options.dayStartsAt)) || blocks.length == 0){
                         block.displayDate = true;
                     }
                     block.id = currentDate.getTime()+'_'+block.time;
                     blocks.push(block);
-                    control = control + this.options.block;
-                    if(control >= 60){
-                        control = 0;
-                    }else{
-                        s--;
-                    }
                 };
                 _blocks = blocks;
             }
@@ -169,24 +177,27 @@
         ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){
             var blocks = this.getTimeBlocks();
             var count = 0;
-            var blockTime = timeToDecimal('0:'+this.options.block);
+            var blockTime = timeToDecimal(this.options.block);
             var eventTime = timeToDecimal(ev.start);
+            var hourTime = timeToDecimal('01:00:00');
             for(var i in blocks){
                 if(blocks[i].date.getTime() != ev.date.getTime()){
                     count++;
                 }else{
-                    var t = timeToDecimal(blocks[i].time);
+                    var t = blocks[i].time;
                     if(eventTime >= t && eventTime < t+blockTime){
                         break;
                     }
                     count++;
                 }
             }
-            return count*this.options.blockHeight+((eventTime % blockTime) * this.options.blockHeight * (Math.floor(60 / this.options.block)))+'px';
+            return count*this.options.blockHeight+((eventTime % blockTime) * this.options.blockHeight * (Math.floor(hourTime / blockTime)))+'px';
         };
 
         ScheduleWidgetViewModel.prototype.getEventHeight = function(ev){
-            return (timeToDecimal(ev.duration) * (Math.floor(60 / this.options.block) * this.options.blockHeight)) + 'px';
+            var blockTime = timeToDecimal(this.options.block);
+            var hourTime = timeToDecimal('01:00:00');
+            return (timeToDecimal(ev.duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight)) + 'px';
         };
 
         window.scheduleWidget = {
