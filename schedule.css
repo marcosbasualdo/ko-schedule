@@ -24,12 +24,12 @@
 }
 
 .schedule-widget__infoblock--firstofdate {
-    border-top: 2px solid #8798A2;
+    border-top: 2px solid #fff;
 
 }
 
 .schedule-widget__timeblock--firstofdate {
-    border-top: 2px solid #8798A2;
+    border-top: 2px solid #397ADA;
 }
 
 .schedule-widget .schedule-widget__timeblock + .schedule-widget__timeblock {
@@ -51,9 +51,18 @@
     left: 60px;
 }
 
+.schedule-widget__infoevents {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
 .schedule-widget__event {
-    background: #FFB3B3;
-    border: 1px solid #FF7575;
+    background: rgb(220, 235, 252);
+    border: 1px solid #AFC9F0;
     border-radius: 3px;
     padding: 7px;
     box-sizing: border-box;
@@ -61,16 +70,56 @@
     width: 100%;
 }
 
+.schedule-widget__event--info {
+    right: 0;
+    left: 0;
+    z-index: 1;
+    border-radius: 0;
+    border: 0;
+    background: rgba(255, 225, 171, 0.5);
+    padding: 0;
+}
+.schedule-widget__event--info .schedule-widget__event__label, .schedule-widget__event--info .schedule-widget__event__time {
+    clear: right;
+    float: left;
+    background: #FFE1AB;
+    width: 100px;
+    color: #C56706;
+    font-size: 10px;
+    margin-left: -100px;
+}
+.schedule-widget__event--info .schedule-widget__event__time {
+    clear: left;
+}
+
+.schedule-widget__event--info .schedule-widget__eventinfo__timearrow {
+    content: "";
+    width: 0;
+    height: 0;
+    background: transparent;
+    display: block;
+    right: 0;
+    border-width: 0 0 0 100px;
+    border-color: #FFE1AB transparent transparent;
+    border-style: solid;
+    top: 0;
+    z-index: -1;
+    float: left;
+    clear: left;
+    margin-left: -100px;
+    margin-top:-1px;
+}
+
 .schedule-widget__event__time {
     font-size: 11px;
     float: right;
     font-weight: normal;
-    color: #B84A4A;
+    color: #3577D9;
 }
 
 .schedule-widget__event__label {
     font-size: 14px;
-    color: #B84A4A;
+    color: #3577D9;
     font-weight: bold;
 }
 
@@ -79,7 +128,8 @@
     width: 100px;
     top: 0;
     bottom: 0;
-    background: rgb(181, 191, 197);
+    background: #213F68;
+    z-index: -2;
 }
 
 .schedule-widget__schedule {
@@ -91,6 +141,6 @@
 .schedule-widget__date {
     margin: 3px;
     display: inline-block;
-    color: #495963;
+    color: #fff;
     font-size: 14px;
 }
