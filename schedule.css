@@ -123,6 +123,36 @@
     font-weight: bold;
 }
 
+.contextual-menu {
+    position: absolute;
+    z-index: 5000;
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 1px solid #dedede;
+    list-style: none;
+    box-shadow: 3px 3px 6px -3px #666;
+    font-family: 'Calibri';
+}
+.contextual-menu__item {
+    padding-right: 15px;
+    min-width: 200px;
+    cursor: default;
+    font-size: 14px;
+}
+.contextual-menu__item:hover {
+    background: #f0f0f0;
+}
+.contextual-menu__item__icon {
+    display: inline-block;
+    width: 25px;
+    text-align: center;
+    padding: 5px 0;
+    border-right: 1px solid #dedede;
+    margin-right: 8px;
+    color: #555;
+}
+
 .schedule-widget__info {
     position: absolute;
     width: 100px;

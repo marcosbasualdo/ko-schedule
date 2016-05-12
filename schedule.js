@@ -13,6 +13,21 @@
                 <!-- /ko -->   
             </div>
             <div class="schedule-widget__schedule">
+                <div class="schedule-widget__infoevents">
+                    <!-- ko foreach: infoevents -->
+                    <div class="schedule-widget__event schedule-widget__event--info" data-bind="style: {
+                        top: $component.getEventTopOffset($data), 
+                        height: $component.getEventHeight($data)+'px'
+                    }, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                        </span>
+                        <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                        <span class="schedule-widget__event__time">
+                            <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
+                        </span>
+                        <span data-bind="style:{'border-top-width': $component.getEventHeight($data) > 26 ? ($component.getEventHeight($data)-26)+'px' : 0}" class="schedule-widget__eventinfo__timearrow">
+                    </div>   
+                    <!-- /ko -->
+                </div> 
                 <div class="schedule-widget__background">
                     <!-- ko foreach: getTimeBlocks() -->
                     <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
@@ -21,11 +36,18 @@
                     <!-- /ko -->
                 </div>
                 <div class="schedule-widget__events">
-                    <!-- ko foreach: getEvents() -->
-                    <div class="schedule-widget__event" data-bind="style: {
+                    <!-- ko foreach: events -->
+                    <div class="schedule-widget__event" data-bind="
+                    style: {
                         top: $component.getEventTopOffset($data), 
-                        height: $component.getEventHeight($data)
-                    }, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                        height: $component.getEventHeight($data)+'px'
+                    }, 
+                    attr: {
+                        id: $data.id && 'schedule-widget__event__'+$data.id
+                    },
+                    event: { 
+                        contextmenu: $component.getContextMenuHandler($data) 
+                    }">
                         <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                         <span class="schedule-widget__event__time">
                             From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
@@ -36,6 +58,22 @@
             </div>
         </div>`
     });
+
+    var contextualMenuDomElem = $('<ul class="contextual-menu">');
+    var contextualMenuItemDomElem = $('<li class="contextual-menu__item">');
+    var contextualMenuItemIconDomElem = $('<span class="contextual-menu__item__icon"><i class="fa">');
+
+    $(function(){
+        $(window).on('resize', () => {
+            contextualMenuDomElem.hide();
+        });
+        $(window).on('scroll', () => {
+            contextualMenuDomElem.hide();
+        });
+        $('html').on('click', () => {
+            contextualMenuDomElem.hide();
+        });
+    })
 
     function pad(n, width, z) {
         z = z || '0';
@@ -79,6 +117,33 @@
         return date.toLocaleString('en', {month: 'long', day: 'numeric'});
     }
 
+    function locateIntoView(elem){
+        var hide = false;
+        if(!elem.is(':visible')){
+            hide = true;
+        }
+        elem.show();
+        var win = $(window);
+        var elemOffset = elem.offset();
+        var elemHeight = elem.height();
+        var elemWidth = elem.width();
+        var visibleToY = win.height() + win.scrollTop();
+        var visibleToX = win.width() + win.scrollLeft();
+        if(elemHeight + elemOffset.top > visibleToY){
+            var top = elemOffset.top - elemHeight;
+            elem.css({
+                top: top > 0 ? top : 0 + 'px'
+            });
+        }
+        if(elemWidth + elemOffset.left > visibleToX){
+            var left = elemOffset.left - elemWidth;
+            elem.css({
+                left: left > 0 ? left : 0 + 'px'
+            });
+        }
+        if(hide) elem.hide();
+    }
+
     function TimeBlock(time){
         this.time = time;
         this.date;
@@ -120,25 +185,71 @@
             startDate: new Date()
         };
 
-        function ScheduleWidgetViewModel(params) {
-            this.eventsDefinition = params.events || [];
-            this.options = $.extend({}, defaults, params.options || {});
-            this.start = this.options.start;
-            this.duration = this.options.duration;
+        function getEventGeneratorFromObservableArray(observable){
+            return ko.computed(function(){
+                return (observable() && observable().map(function(ev){
+                        var event = new Event(ev.label, ev.start, ev.duration, ev.date);
+                        if(ev.id != void 0){
+                            event.id = ev.id
+                        }
+                        return event;
+                    })) || [];
+            }, this);
         }
 
 
-        ScheduleWidgetViewModel.prototype.getEvents = function() {
-            return (this.eventsDefinition && this.eventsDefinition.map(function(ev){
-                var event = new Event(ev.label, ev.start, ev.duration, ev.date);
-                if(ev.id != void 0){
-                    event.id = ev.id
-                }
-                return event;
-            })) || [];
-        };
+        function ScheduleWidgetViewModel(params) {
+            this.eventsDefinition = params.events || [];
+            this.infoEventsDefinition = params.info || [];
+            this.contextMenuProvider = params.contextMenuProvider || function(){};
+            this.options = $.extend({}, defaults, params.options || {});
+            this.start = this.options.start;
+            this.duration = this.options.duration;
+            this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
+            this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
+        }
 
         ScheduleWidgetViewModel.prototype.getDateStr = getDateStr;
+
+
+
+        ScheduleWidgetViewModel.prototype.getContextMenuHandler = function(scheduleEvent){
+            var self = this;
+            return function(scheduleEvent, jsEvent){
+                if(self.contextMenuProvider){
+                    var actions = self.contextMenuProvider(scheduleEvent);
+                    contextualMenuDomElem.empty();
+                    actions.forEach(action => {
+                        var item = contextualMenuItemDomElem.clone();
+                        var icon = contextualMenuItemIconDomElem.clone();
+
+                        item.bind('click', () => {
+                            contextualMenuDomElem.hide();
+                            action.action();
+                        });
+
+                        item.html(action.label);
+
+                        if(action.faIcon){
+                            icon.find('i').addClass(['fa',action.faIcon].join('-'));
+                        }
+                        item.prepend(icon);
+
+                        contextualMenuDomElem.append(item);
+
+                        contextualMenuDomElem.css({
+                            top: event.pageY+'px',
+                            left: event.pageX+'px'
+                        });
+
+                        $('body').append(contextualMenuDomElem);
+
+                    });
+                    locateIntoView(contextualMenuDomElem);
+                    contextualMenuDomElem.show();
+                }
+            }
+        };
 
         ScheduleWidgetViewModel.prototype.getTimeBlocks = function() {
             if(!_blocks){
@@ -171,16 +282,14 @@
             return _blocks;
         };
 
-
-
-        ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){
+        ScheduleWidgetViewModel.prototype.getTopOffsetFromStartTime = function(time, date){
             var blocks = this.getTimeBlocks();
             var count = 0;
             var blockTime = timeToDecimal(this.options.block);
-            var eventTime = timeToDecimal(ev.start);
+            var eventTime = timeToDecimal(time);
             var hourTime = timeToDecimal('01:00:00');
             for(var i in blocks){
-                if(blocks[i].date.getTime() != ev.date.getTime()){
+                if(blocks[i].date.getTime() != date.getTime()){
                     count++;
                 }else{
                     var t = blocks[i].time;
@@ -193,10 +302,18 @@
             return count*this.options.blockHeight+((eventTime % blockTime) * this.options.blockHeight * (Math.floor(hourTime / blockTime)))+'px';
         };
 
-        ScheduleWidgetViewModel.prototype.getEventHeight = function(ev){
+        ScheduleWidgetViewModel.prototype.getHeightFromDuration = function(duration) {
             var blockTime = timeToDecimal(this.options.block);
             var hourTime = timeToDecimal('01:00:00');
-            return (timeToDecimal(ev.duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight)) + 'px';
+            return (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight));
+        }
+
+        ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){
+            return this.getTopOffsetFromStartTime(ev.start, ev.date);
+        };
+
+        ScheduleWidgetViewModel.prototype.getEventHeight = function(ev){
+            return this.getHeightFromDuration(ev.duration);
         };
 
         window.scheduleWidget = {
