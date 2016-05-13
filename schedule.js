@@ -4,7 +4,7 @@
         template: `
         <div class="schedule-widget">
             <div class="schedule-widget__info"">
-                <!-- ko foreach: getTimeBlocks() -->
+                <!-- ko foreach: getTimeBlocks -->
                 <div class="schedule-widget__infoblock" data-bind="css: {'schedule-widget__infoblock--firstofdate': $data.displayDate}">
                     <!-- ko if: $data.displayDate -->
                     <span class="schedule-widget__date" data-bind="text: $component.getDateStr($data.date)"></span>
@@ -29,7 +29,7 @@
                     <!-- /ko -->
                 </div> 
                 <div class="schedule-widget__background">
-                    <!-- ko foreach: getTimeBlocks() -->
+                    <!-- ko foreach: getTimeBlocks -->
                     <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
                         <span data-bind="text: $data.label"></span>
                     </div>   
@@ -167,7 +167,7 @@
 
     Object.defineProperty(Event.prototype, 'end', {
         get:function(){
-            return decimalToTime(timeToDecimal(this.start) + timeToDecimal(this.duration));
+            return decimalToTime(timeToDecimal(this.start()) + timeToDecimal(this.duration()));
         }
     });
     function ViewModel() {
@@ -207,6 +207,34 @@
             this.duration = this.options.duration;
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
             this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
+            this.getTimeBlocks = ko.computed(function() {
+                var blocks = [];
+                var currentDate = new Date(this.options.startDate().getTime());
+                currentDate.setDate(currentDate.getDate() - 1);
+
+                var blockSize = timeToDecimal(this.options.block());
+                var startTime = timeToDecimal(this.start());
+                var end = startTime + timeToDecimal(this.duration());
+
+                for(var s = startTime; s < end; s = s + blockSize){
+                    var hour = (s % 24);
+                    var block = new TimeBlock(hour);
+
+                    if(decimalToTime(hour) == this.options.dayStartsAt()){
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    block.date = new Date(currentDate.getTime());
+
+                    if((decimalToTime(hour) == this.options.dayStartsAt()) || blocks.length == 0){
+                        block.displayDate = true;
+                    }
+                    block.id = currentDate.getTime()+'_'+block.label;
+                    blocks.push(block);
+                };
+                return blocks;
+
+            }.bind(this));
         }
 
         ScheduleWidgetViewModel.prototype.getDateStr = getDateStr;
@@ -251,41 +279,10 @@
             }
         };
 
-        ScheduleWidgetViewModel.prototype.getTimeBlocks = function() {
-            if(!_blocks){
-                var blocks = [];
-                var currentDate = new Date(this.options.startDate.getTime());
-                currentDate.setDate(currentDate.getDate() - 1);
-
-                var blockSize = timeToDecimal(this.options.block);
-                var startTime = timeToDecimal(this.start);
-                var end = startTime + timeToDecimal(this.duration);
-
-                for(var s = startTime; s < end; s = s + blockSize){
-                    var hour = (s % 24);
-                    var block = new TimeBlock(hour);
-
-                    if(decimalToTime(hour) == this.options.dayStartsAt){
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    block.date = new Date(currentDate.getTime());
-
-                    if((decimalToTime(hour) == this.options.dayStartsAt) || blocks.length == 0){
-                        block.displayDate = true;
-                    }
-                    block.id = currentDate.getTime()+'_'+block.label;
-                    blocks.push(block);
-                };
-                _blocks = blocks;
-            }
-            return _blocks;
-        };
-
         ScheduleWidgetViewModel.prototype.getTopOffsetFromStartTime = function(time, date){
             var blocks = this.getTimeBlocks();
             var count = 0;
-            var blockTime = timeToDecimal(this.options.block);
+            var blockTime = timeToDecimal(this.options.block());
             var eventTime = timeToDecimal(time);
             var hourTime = timeToDecimal('01:00:00');
             for(var i in blocks){
@@ -299,21 +296,21 @@
                     count++;
                 }
             }
-            return count*this.options.blockHeight+((eventTime % blockTime) * this.options.blockHeight * (Math.floor(hourTime / blockTime)))+'px';
+            return count*this.options.blockHeight()+((eventTime % blockTime) * this.options.blockHeight() * (Math.floor(hourTime / blockTime)))+'px';
         };
 
         ScheduleWidgetViewModel.prototype.getHeightFromDuration = function(duration) {
-            var blockTime = timeToDecimal(this.options.block);
+            var blockTime = timeToDecimal(this.options.block());
             var hourTime = timeToDecimal('01:00:00');
-            return (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight));
+            return (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight()));
         }
 
         ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){
-            return this.getTopOffsetFromStartTime(ev.start, ev.date);
+            return this.getTopOffsetFromStartTime(ev.start(), ev.date());
         };
 
         ScheduleWidgetViewModel.prototype.getEventHeight = function(ev){
-            return this.getHeightFromDuration(ev.duration);
+            return this.getHeightFromDuration(ev.duration());
         };
 
         window.scheduleWidget = {
