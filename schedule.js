@@ -266,8 +266,8 @@
                         contextualMenuDomElem.append(item);
 
                         contextualMenuDomElem.css({
-                            top: event.pageY+'px',
-                            left: event.pageX+'px'
+                            top: jsEvent.pageY+'px',
+                            left: jsEvent.pageX+'px'
                         });
 
                         $('body').append(contextualMenuDomElem);
