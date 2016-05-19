@@ -102,11 +102,9 @@
     }
 
     function decimalToTime(decimal){
-        var minThreshold = timeToDecimal('00:00:59');
-        var secThreshold = timeToDecimal('00:00:00:1');
 
-        var hours = Math.floor((decimal + minThreshold) % 60);
-        var minutes = Math.floor(Math.floor(((decimal * 60) + secThreshold) % 60));
+        var hours = Math.floor(decimal % 60);
+        var minutes = Math.floor(Math.floor((decimal * 60) % 60));
         var seconds = parseFloat(parseFloat((decimal * 3600) % 60).toFixed(2)) % 60;
 
         // TODO: This pad mapping can be simplified by right currying the pad function with 2.
@@ -163,6 +161,7 @@
         this.duration = duration;
         this.date = date;
         this.id;
+        this.item;
     }
 
     Object.defineProperty(Event.prototype, 'end', {
@@ -177,20 +176,26 @@
         var _blocks;
 
         var defaults = {
-            block: 60,
-            start: 0,
-            end: 24,
-            blockHeight: 30,
-            dayStartsAt: 0,
-            startDate: new Date()
+            block: ko.observable('00:30:00'),
+            start: ko.observable('00:00:00'),
+            duration: ko.observable('24:00:00'),
+            blockHeight: ko.observable(30),
+            dayStartsAt: ko.observable('00:00:00'),
+            startDate: ko.observable(new Date())
         };
 
         function getEventGeneratorFromObservableArray(observable){
             return ko.computed(function(){
                 return (observable() && observable().map(function(ev){
+                        if(!ev.duration && ev.end){
+                            ev.duration = ko.observable(decimalToTime(timeToDecimal(ev.end()) - timeToDecimal(ev.start())));
+                        }
                         var event = new Event(ev.label, ev.start, ev.duration, ev.date);
                         if(ev.id != void 0){
                             event.id = ev.id
+                        }
+                        if(ev.item){
+                            event.item = ev.item;
                         }
                         return event;
                     })) || [];
@@ -199,8 +204,8 @@
 
 
         function ScheduleWidgetViewModel(params) {
-            this.eventsDefinition = params.events || [];
-            this.infoEventsDefinition = params.info || [];
+            this.eventsDefinition = params.events || ko.observableArray([]);
+            this.infoEventsDefinition = params.info || ko.observableArray([]);
             this.contextMenuProvider = params.contextMenuProvider || function(){};
             this.options = $.extend({}, defaults, params.options || {});
             this.start = this.options.start;
