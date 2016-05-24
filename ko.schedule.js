@@ -211,7 +211,6 @@
             this.start = this.options.start;
             this.duration = this.options.duration;
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
-            this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
             this.getTimeBlocks = ko.computed(function() {
                 var blocks = [];
                 var currentDate = new Date(this.options.startDate().getTime());
@@ -240,6 +239,7 @@
                 return blocks;
 
             }.bind(this));
+            this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
         }
 
         ScheduleWidgetViewModel.prototype.getDateStr = getDateStr;
@@ -307,7 +307,8 @@
         ScheduleWidgetViewModel.prototype.getHeightFromDuration = function(duration) {
             var blockTime = timeToDecimal(this.options.block());
             var hourTime = timeToDecimal('01:00:00');
-            return (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight()));
+            var height = (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight()));
+            return height > 1 ? height : 2;
         }
 
         ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){

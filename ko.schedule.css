@@ -94,20 +94,20 @@
 
 .schedule-widget__event--info .schedule-widget__eventinfo__timearrow {
     content: "";
-    width: 0;
-    height: 0;
-    background: transparent;
-    display: block;
-    right: 0;
-    border-width: 0 0 0 100px;
-    border-color: #FFE1AB transparent transparent;
-    border-style: solid;
-    top: 0;
-    z-index: -1;
-    float: left;
-    clear: left;
-    margin-left: -100px;
-    margin-top:-1px;
+width: 0;
+height: 0;
+background: transparent;
+display: block;
+right: 0;
+border-width: 0 0 0 100px;
+border-color: #FFE1AB transparent transparent;
+border-style: solid;
+top: 0;
+z-index: -1;
+float: left;
+clear: left;
+margin-left: -100px;
+margin-top:-1px;
 }
 
 .schedule-widget__event__time {
@@ -173,4 +173,15 @@
     display: inline-block;
     color: #fff;
     font-size: 14px;
+}
+
+[5:28 PM] Agusho:   addUserLikes(user:IUser, likes: any[] ) {
+var headers = new Headers({
+'Content-Type': 'application/json'
+});
+return this.http.post(
+this._userFavoritesEndpoint(user),
+JSON.stringify({ properties: likes }),
+{headers: headers}
+).map(data=>data.json());
 }
