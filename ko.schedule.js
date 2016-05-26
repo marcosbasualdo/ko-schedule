@@ -291,7 +291,6 @@
         };
 
         ScheduleWidgetViewModel.prototype.getTopOffsetFromStartTime = function(time, date){
-            if(time == '16:00:00') debugger;
             var blocks = this.getTimeBlocks();
             var count = 0;
             var blockTime = timeToDecimal(this.options.block());
