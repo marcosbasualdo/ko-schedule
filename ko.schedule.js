@@ -226,6 +226,8 @@
         var _draggingEvent;
 
 
+        var d = new Date();
+        
         var defaults = {
             block: ko.observable('00:30:00'),
             start: ko.observable('00:00:00'),
@@ -269,7 +271,8 @@
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
             this.getTimeBlocks = ko.computed(function() {
                 var blocks = [];
-                var currentDate = new Date(this.options.startDate().getTime());
+                var d = new Date(this.options.startDate().getTime());
+                var currentDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
                 currentDate.setDate(currentDate.getDate() - 1);
 
                 var blockSize = timeToDecimal(this.options.block());
@@ -283,8 +286,9 @@
                     if(decimalToTime(hour) == this.options.dayStartsAt()){
                         currentDate.setDate(currentDate.getDate() + 1);
                     }
-
-                    block.date = new Date(currentDate.getTime());
+                     
+                    var d = new Date(currentDate.getTime());
+                    block.date = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 
                     if((decimalToTime(hour) == this.options.dayStartsAt()) || blocks.length == 0){
                         block.displayDate = true;
@@ -346,32 +350,34 @@
                 if(self.contextMenuProvider){
                     var actions = self.contextMenuProvider(scheduleEvent);
                     contextualMenuDomElem.empty();
-                    actions.forEach(action => {
-                        var item = contextualMenuItemDomElem.clone();
-                        var icon = contextualMenuItemIconDomElem.clone();
+                    if(actions){
+                        actions.forEach(action => {
+                            var item = contextualMenuItemDomElem.clone();
+                            var icon = contextualMenuItemIconDomElem.clone();
 
-                        item.bind('click', () => {
-                            contextualMenuDomElem.hide();
-                            action.action();
+                            item.bind('click', () => {
+                                contextualMenuDomElem.hide();
+                                action.action();
+                            });
+
+                            item.html(action.label);
+
+                            if(action.faIcon){
+                                icon.find('i').addClass(['fa',action.faIcon].join('-'));
+                            }
+                            item.prepend(icon);
+
+                            contextualMenuDomElem.append(item);
+
+                            contextualMenuDomElem.css({
+                                top: jsEvent.pageY+'px',
+                                left: jsEvent.pageX+'px'
+                            });
+
+                            $('body').append(contextualMenuDomElem);
+
                         });
-
-                        item.html(action.label);
-
-                        if(action.faIcon){
-                            icon.find('i').addClass(['fa',action.faIcon].join('-'));
-                        }
-                        item.prepend(icon);
-
-                        contextualMenuDomElem.append(item);
-
-                        contextualMenuDomElem.css({
-                            top: jsEvent.pageY+'px',
-                            left: jsEvent.pageX+'px'
-                        });
-
-                        $('body').append(contextualMenuDomElem);
-
-                    });
+                    };
                     locateIntoView(contextualMenuDomElem);
                     contextualMenuDomElem.show();
                 }
@@ -385,7 +391,8 @@
             var eventTime = timeToDecimal(time);
             var hourTime = timeToDecimal('01:00:00');
             for(var i in blocks){
-                if(blocks[i].date.getTime() != date.getTime()){
+                var blockDate = blocks[i].date;
+                if([blockDate.getUTCFullYear(), blockDate.getUTCMonth(), blockDate.getUTCDate()].join('-') != [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()].join('-')){
                     count++;
                 }else{
                     var t = blocks[i].time;
