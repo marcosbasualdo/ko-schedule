@@ -1,7 +1,7 @@
 .schedule-widget {
     position: relative;
     font-family: 'Calibri';
-    overflow: hidden;
+    margin-top: 40px;
 }
 
 .schedule-widget__infoblock, .schedule-widget__timeblock {
@@ -47,8 +47,9 @@
 .schedule-widget__events {
     position: absolute;
     top: 0;
-    right: 20px;
+    right: 0;
     left: 60px;
+    bottom: 0;
 }
 
 .schedule-widget__infoevents {
@@ -67,7 +68,8 @@
     padding: 7px;
     box-sizing: border-box;
     position: absolute;
-    width: 100%;
+    left: 10px;
+    right: 10px;
 }
 
 .schedule-widget__event--info {
@@ -175,13 +177,32 @@ margin-top:-1px;
     font-size: 14px;
 }
 
-[5:28 PM] Agusho:   addUserLikes(user:IUser, likes: any[] ) {
-var headers = new Headers({
-'Content-Type': 'application/json'
-});
-return this.http.post(
-this._userFavoritesEndpoint(user),
-JSON.stringify({ properties: likes }),
-{headers: headers}
-).map(data=>data.json());
+.schedule-widget__columns {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+}
+
+.schedule-widget__column {
+    display: inline-block;
+    float: left;
+
+    border-left: 1px solid #BAC4C9;
+    box-sizing: border-box;
+    position: relative;
+    bottom: 0;
+    height: calc(100%);
+}
+
+.schedule-widget__columnheader {
+    margin-top: -25px;
+    border-left: 1px solid #BAC4C9;
+    text-align: center;
+    line-height: 25px;
+    margin-left: -1px;
+    font-size: 14px;
+    background: #213F68;
+    color: white;
 }

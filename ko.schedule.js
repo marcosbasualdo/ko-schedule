@@ -29,15 +29,54 @@
                     <!-- /ko -->
                 </div> 
                 <div class="schedule-widget__background">
-                    <!-- ko foreach: getTimeBlocks -->
-                    <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
-                        <span data-bind="text: $data.label"></span>
-                    </div>   
-                    <!-- /ko -->
+                    <div class="schedule-widget__timeblocks">
+                        <!-- ko foreach: getTimeBlocks -->
+                        <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                            <span data-bind="text: $data.label"></span>
+                        </div>   
+                        <!-- /ko -->
+                    </div>
                 </div>
                 <div class="schedule-widget__events">
+                    <div class="schedule-widget__columns">
+                         <!-- ko foreach: getColumns -->
+                        <div class="schedule-widget__column" data-bind="
+                            style: {width: $component.getColumnsWidth()}, 
+                            attr: {id: $component.getColumnDomId($data)},
+                            event: {dragover: $component.handleDragOver,dragenter: $component.handleDragEnter,drop: $component.handleDrop}">
+                            <div class="schedule-widget__columnheader">
+                               <span data-bind="text: $data.name"></span>
+                            </div>
+                            <!-- ko foreach: $component.events -->
+                            
+                    <div class="schedule-widget__event" draggable="true" data-bind="
+                        style: {
+                            top: $component.getEventTopOffset($data), 
+                            height: $component.getEventHeight($data)+'px'
+                        }, 
+                        attr: {
+                            id: $data.id && 'schedule-widget__event__'+$data.id
+                        },
+                        event: { 
+                            contextmenu: $component.getContextMenuHandler($data),
+                            dragstart: $component.handleDragStart
+                        },
+                        visible: isOnColumn($parent)">
+                        <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                        <span class="schedule-widget__event__time">
+                            From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
+                        </span>
+                    </div> 
+                    
+                            <!-- /ko -->
+                        </div>   
+                        <!-- /ko -->   
+                    </div>
+                    
                     <!-- ko foreach: events -->
+                    
                     <div class="schedule-widget__event" data-bind="
+                    visible: !$data.column,
                     style: {
                         top: $component.getEventTopOffset($data), 
                         height: $component.getEventHeight($data)+'px'
@@ -155,13 +194,22 @@
         }
     });
 
-    function Event(label, start, duration, date){
+    function Event(label, start, duration, date, column){
         this.label = label;
         this.start = start;
         this.duration = duration;
         this.date = date;
+        this.column = column;
         this.id;
         this.item;
+        this.isOnColumn = function(column){
+            return this.column && column.name == this.column();
+        };
+    }
+
+    function Column(name, id){
+        this.id = id;
+        this.name = name;
     }
 
     Object.defineProperty(Event.prototype, 'end', {
@@ -169,11 +217,14 @@
             return decimalToTime(timeToDecimal(this.start()) + timeToDecimal(this.duration()));
         }
     });
+
     function ViewModel() {
 
-
-
         var _blocks;
+        var _columns;
+        var _columnsMapping = {};
+        var _draggingEvent;
+
 
         var defaults = {
             block: ko.observable('00:30:00'),
@@ -181,7 +232,8 @@
             duration: ko.observable('24:00:00'),
             blockHeight: ko.observable(30),
             dayStartsAt: ko.observable('00:00:00'),
-            startDate: ko.observable(new Date())
+            startDate: ko.observable(new Date()),
+            columns: ko.observable([])
         };
 
         function getEventGeneratorFromObservableArray(observable){
@@ -190,7 +242,7 @@
                         if(!ev.duration && ev.end){
                             ev.duration = ko.observable(decimalToTime(timeToDecimal(ev.end()) - timeToDecimal(ev.start())));
                         }
-                        var event = new Event(ev.label, ev.start, ev.duration, ev.date);
+                        var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.column);
                         if(ev.id != void 0){
                             event.id = ev.id
                         }
@@ -204,11 +256,15 @@
 
 
         function ScheduleWidgetViewModel(params) {
+
+
             this.eventsDefinition = params.events || ko.observableArray([]);
             this.infoEventsDefinition = params.info || ko.observableArray([]);
+
             this.contextMenuProvider = params.contextMenuProvider || function(){};
             this.options = $.extend({}, defaults, params.options || {});
             this.start = this.options.start;
+            this.columnsDefinition = this.options.columns;
             this.duration = this.options.duration;
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
             this.getTimeBlocks = ko.computed(function() {
@@ -240,11 +296,49 @@
 
             }.bind(this));
             this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
+            this.getColumns = ko.computed(function(){
+                if(!_columns){
+                    _columns = this.columnsDefinition().map(function(c,i){
+                        var col = new Column(c.name, i);
+                        _columnsMapping[c.name] = col;
+                        return col;
+                    })
+                }
+                return _columns;
+            }.bind(this));
         }
 
         ScheduleWidgetViewModel.prototype.getDateStr = getDateStr;
 
+        ScheduleWidgetViewModel.prototype.getColumnsWidth = function(){
+            var w = 100 / this.columnsDefinition().length;
+            return w && w.toString().slice(0,4) + '%';
+        };
 
+        ScheduleWidgetViewModel.prototype.getColumnDomId = function(column){
+            return 'schedule-widget__column--'+column.id;
+        };
+
+        ScheduleWidgetViewModel.prototype.handleDragStart = function(scheduleEvent,jsEvent){
+            _draggingEvent = scheduleEvent;
+            return true;
+        };
+
+        ScheduleWidgetViewModel.prototype.handleDragOver = function(column, jsEvent){
+            jsEvent.preventDefault();
+        };
+
+        ScheduleWidgetViewModel.prototype.handleDragEnter = function(column, jsEvent){
+            if(_draggingEvent){
+                _draggingEvent.column(column.name);
+            }
+            return true;
+        };
+
+        ScheduleWidgetViewModel.prototype.handleDrop = function(column, jsEvent){
+            _draggingEvent = null;
+            return true;
+        };
 
         ScheduleWidgetViewModel.prototype.getContextMenuHandler = function(scheduleEvent){
             var self = this;
