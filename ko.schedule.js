@@ -56,6 +56,7 @@
                             height: $component.getEventHeight($data)+'px'
                         }, 
                         attr: {
+                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
                             id: $data.id && 'schedule-widget__event__'+$data.id
                         },
                         event: { 
