@@ -245,7 +245,10 @@
 
     Object.defineProperty(Event.prototype, 'end', {
         get:function(){
-            return decimalToTime(timeToDecimal(this.start()) + timeToDecimal(this.duration()));
+            var endTime = decimalToTime(timeToDecimal(this.start()) + timeToDecimal(this.duration()));
+            endTime = endTime.split(':');
+            endTime = [parseInt(endTime.shift()) % 24].concat(endTime).join(':');
+            return endTime;
         }
     });
 
