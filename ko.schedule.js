@@ -9,33 +9,34 @@
                     <!-- ko if: $data.displayDate -->
                     <span class="schedule-widget__date" data-bind="text: $component.getDateStr($data.date)"></span>
                     <!-- /ko -->
-                </div>   
-                <!-- /ko -->   
+                </div>
+                <!-- /ko -->
             </div>
             <div class="schedule-widget__schedule">
                 <div class="schedule-widget__infoevents">
                     <!-- ko foreach: infoevents -->
                     <div class="schedule-widget__event schedule-widget__event--info" data-bind="style: {
-                        top: $component.getEventTopOffset($data), 
+                        top: $component.getEventTopOffset($data),
                         height: $component.getEventHeight($data)+'px'
-                    }, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                    }, attr: {
+                        class: 'schedule-widget__event schedule-widget__event--info schedule-widget__event--category-'+$data.category().toLowerCase(),
+                        id: $data.id && 'schedule-widget__event__'+$data.id
+                    }">
                         </span>
                         <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                         <span class="schedule-widget__event__time">
                             <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
                         </span>
-                        <span data-bind="style:{'border-top-width': $component.getEventHeight($data) > 26 ? ($component.getEventHeight($data)-26)+'px' : 0}" class="schedule-widget__eventinfo__timearrow">
-                    </div>   
-                    <!-- /ko -->
-                </div> 
-                <div class="schedule-widget__background">
-                    <div class="schedule-widget__timeblocks">
-                        <!-- ko foreach: getTimeBlocks -->
-                        <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
-                            <span data-bind="text: $data.label"></span>
-                        </div>   
-                        <!-- /ko -->
+                        <span data-bind="style:{'border-top-width': $component.getEventHeight($data) > 40 ? ($component.getEventHeight($data)-40)+'px' : 0}" class="schedule-widget__eventinfo__timearrow">
                     </div>
+                    <!-- /ko -->
+                </div>
+                <div class="schedule-widget__background">
+                    <!-- ko foreach: getTimeBlocks -->
+                    <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                        <span data-bind="text: $data.label"></span>
+                    </div>
+                    <!-- /ko -->
                 </div>
                 <div class="schedule-widget__events">
                     <div class="schedule-widget__columns">
@@ -55,6 +56,7 @@
                             height: $component.getEventHeight($data)+'px'
                         }, 
                         attr: {
+                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
                             id: $data.id && 'schedule-widget__event__'+$data.id
                         },
                         event: { 
@@ -79,22 +81,23 @@
                     <div class="schedule-widget__event" data-bind="
                     visible: !$data.column,
                     style: {
-                        top: $component.getEventTopOffset($data), 
+                        top: $component.getEventTopOffset($data),
                         height: $component.getEventHeight($data)+'px'
-                    }, 
+                    },
                     attr: {
+                        class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
                         id: $data.id && 'schedule-widget__event__'+$data.id
                     },
-                    event: { 
-                        contextmenu: $component.getContextMenuHandler($data) 
+                    event: {
+                        contextmenu: $component.getContextMenuHandler($data)
                     }">
                         <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                         <span class="schedule-widget__event__time">
                             From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
                         </span>
-                    </div>   
+                    </div>
                     <!-- /ko -->
-                </div>    
+                </div>
             </div>
         </div>`
     });
@@ -152,7 +155,7 @@
     }
 
     function getDateStr(date){
-        return date.toLocaleString('en', {month: 'long', day: 'numeric'});
+        return moment(date).format('MMM DD');
     }
 
     function locateIntoView(elem){
@@ -195,8 +198,9 @@
         }
     });
 
-    function Event(label, start, duration, date, column){
+    function Event(label, start, duration, date, category, column){
         this.label = label;
+        this.category = category ? category : ko.observable('default')
         this.start = start;
         this.duration = duration;
         this.date = date;
@@ -230,7 +234,7 @@
 
 
         var d = new Date();
-        
+
         var defaults = {
             block: ko.observable('00:30:00'),
             start: ko.observable('00:00:00'),
@@ -248,7 +252,7 @@
                         if(!ev.duration && ev.end){
                             ev.duration = ko.observable(decimalToTime(timeToDecimal(ev.end()) - timeToDecimal(ev.start())));
                         }
-                        var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.column);
+                        var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.category, ev.column);
                         if(ev.id != void 0){
                             event.id = ev.id
                         }
@@ -275,9 +279,7 @@
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
             this.getTimeBlocks = ko.computed(function() {
                 var blocks = [];
-                var d = new Date(this.options.startDate().getTime());
-                var currentDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-                currentDate.setDate(currentDate.getDate() - 1);
+                currentDate = moment(this.options.startDate()).add(-1, 'days');
 
                 var blockSize = timeToDecimal(this.options.block());
                 var startTime = timeToDecimal(this.start());
@@ -288,16 +290,15 @@
                     var block = new TimeBlock(hour);
 
                     if(decimalToTime(hour) == this.options.dayStartsAt()){
-                        currentDate.setDate(currentDate.getDate() + 1);
+                        currentDate.add(1, 'days');
                     }
-                     
-                    var d = new Date(currentDate.getTime());
-                    block.date = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+
+                    block.date = currentDate.format('YYYY-MM-DD');
 
                     if((decimalToTime(hour) == this.options.dayStartsAt()) || blocks.length == 0){
                         block.displayDate = true;
                     }
-                    block.id = currentDate.getTime()+'_'+block.label;
+                    block.id = currentDate.unix()+'_'+block.label;
                     blocks.push(block);
                 };
                 return blocks;
@@ -408,7 +409,7 @@
             var hourTime = timeToDecimal('01:00:00');
             for(var i in blocks){
                 var blockDate = blocks[i].date;
-                if([blockDate.getUTCFullYear(), blockDate.getUTCMonth(), blockDate.getUTCDate()].join('-') != [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()].join('-')){
+                if(blockDate != date){
                     count++;
                 }else{
                     var t = blocks[i].time;
