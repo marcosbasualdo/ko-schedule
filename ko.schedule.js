@@ -59,6 +59,9 @@
                             class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
                             id: $data.id && 'schedule-widget__event__'+$data.id
                         },
+                        css: {
+                            'schedule-widget__event--dirty': $data.isDirty
+                        },
                         event: { 
                             contextmenu: $component.getContextMenuHandler($data),
                             dragstart: $component.handleDragStart,
@@ -69,6 +72,10 @@
                         <span class="schedule-widget__event__time">
                             From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
                         </span>
+                        <div class="schedule-widget__event__stateactions">
+                            <a href="" class="schedule-widget__btn schedule-widget__btn--success" data-bind="click: $data.saveCurrentState"><i class="fa fa-save"></i></a>
+                            <a href="" class="schedule-widget__btn schedule-widget__btn--warning" data-bind="click: $data.restorePrevState"><i class="fa fa-undo"></i></a>
+                        </div>
                     </div> 
                     
                             <!-- /ko -->
@@ -199,6 +206,8 @@
     });
 
     function Event(label, start, duration, date, category, column){
+        var prevState = ko.observable();
+        var self = this;
         this.label = label;
         this.category = category ? category : ko.observable('default')
         this.start = start;
@@ -210,6 +219,23 @@
         this.isOnColumn = function(column){
             return this.column && column.name == this.column();
         };
+        this.takeStateSnapshot = function(){
+            prevState(ko.toJS(this));
+        };
+        this.onSave = function(){};
+        this.isDirty = ko.computed(function(){
+            if(prevState()){
+                if(self.column && self.column() != prevState().column) return true;
+            };
+            return false;
+        });
+        this.restorePrevState = function(){
+            self.column(prevState().column);
+        };
+        this.saveCurrentState = function(){
+            prevState(null);
+            self.onSave(self);
+        }
     }
 
     function Column(name, id){
@@ -229,8 +255,6 @@
         var _columns;
         var _columnsMapping = {};
         var _draggingEvent;
-        var _draggingEvent;
-        var _originalSerializedDraggingEvent;
 
 
         var d = new Date();
@@ -243,7 +267,8 @@
             dayStartsAt: ko.observable('00:00:00'),
             startDate: ko.observable(new Date()),
             columns: ko.observable([]),
-            onDropEventOnColumn: function(){}
+            onDropEventOnColumn: function(){},
+            onSaveEvent: function(){}
         };
 
         function getEventGeneratorFromObservableArray(observable){
@@ -266,7 +291,7 @@
 
 
         function ScheduleWidgetViewModel(params) {
-
+            var self = this;
 
             this.eventsDefinition = params.events || ko.observableArray([]);
             this.infoEventsDefinition = params.info || ko.observableArray([]);
@@ -277,6 +302,9 @@
             this.columnsDefinition = this.options.columns;
             this.duration = this.options.duration;
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
+            this.events().map(function(e){
+                e.onSave = self.options.onSaveEvent;
+            });
             this.getTimeBlocks = ko.computed(function() {
                 var blocks = [];
                 currentDate = moment(this.options.startDate()).add(-1, 'days');
@@ -330,7 +358,9 @@
 
         ScheduleWidgetViewModel.prototype.handleDragStart = function(scheduleEvent,jsEvent){
             _draggingEvent = scheduleEvent;
-            _originalSerializedDraggingEvent = ko.toJS (_draggingEvent);
+            if(!_draggingEvent.isDirty()){
+                _draggingEvent.takeStateSnapshot();
+            }
             return true;
         };
 
@@ -347,11 +377,10 @@
 
         ScheduleWidgetViewModel.prototype.getDragEndHandler = function(vm){
             return function(event, jsEvent){
-                if(_originalSerializedDraggingEvent.column != event.column()){
+                if(event.isDirty()){
                     vm.options.onDropEventOnColumn(event);
                 }
                 _draggingEvent = null;
-                _originalSerializedDraggingEvent = null;
                 return true;
             }
         };

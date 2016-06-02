@@ -54,6 +54,9 @@
                 ]),
                 onDropEventOnColumn: function(event){
                     console.log(event.column());
+                },
+                onSaveEvent: function(event){
+                    console.log('SAVEEE '+event.column());
                 }
             };
             this.info = ko.observableArray([
