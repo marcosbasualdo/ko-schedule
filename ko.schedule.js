@@ -59,7 +59,8 @@
                         },
                         event: { 
                             contextmenu: $component.getContextMenuHandler($data),
-                            dragstart: $component.handleDragStart
+                            dragstart: $component.handleDragStart,
+                            dragend: $component.getDragEndHandler($component)
                         },
                         visible: isOnColumn($parent)">
                         <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
@@ -224,6 +225,8 @@
         var _columns;
         var _columnsMapping = {};
         var _draggingEvent;
+        var _draggingEvent;
+        var _originalSerializedDraggingEvent;
 
 
         var d = new Date();
@@ -235,7 +238,8 @@
             blockHeight: ko.observable(30),
             dayStartsAt: ko.observable('00:00:00'),
             startDate: ko.observable(new Date()),
-            columns: ko.observable([])
+            columns: ko.observable([]),
+            onDropEventOnColumn: function(){}
         };
 
         function getEventGeneratorFromObservableArray(observable){
@@ -325,6 +329,7 @@
 
         ScheduleWidgetViewModel.prototype.handleDragStart = function(scheduleEvent,jsEvent){
             _draggingEvent = scheduleEvent;
+            _originalSerializedDraggingEvent = ko.toJS (_draggingEvent);
             return true;
         };
 
@@ -337,6 +342,17 @@
                 _draggingEvent.column(column.name);
             }
             return true;
+        };
+
+        ScheduleWidgetViewModel.prototype.getDragEndHandler = function(vm){
+            return function(event, jsEvent){
+                if(_originalSerializedDraggingEvent.column != event.column()){
+                    vm.options.onDropEventOnColumn(event);
+                }
+                _draggingEvent = null;
+                _originalSerializedDraggingEvent = null;
+                return true;
+            }
         };
 
         ScheduleWidgetViewModel.prototype.handleDrop = function(column, jsEvent){
