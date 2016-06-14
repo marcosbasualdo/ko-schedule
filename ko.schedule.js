@@ -42,19 +42,19 @@
                     <div class="schedule-widget__columns">
                          <!-- ko foreach: getColumns -->
                         <div class="schedule-widget__column" data-bind="
-                            style: {width: $component.getColumnsWidth()}, 
+                            style: {width: $component.getColumnsWidth()},
                             attr: {id: $component.getColumnDomId($data)},
                             event: {dragover: $component.handleDragOver,dragenter: $component.handleDragEnter,drop: $component.handleDrop}">
                             <div class="schedule-widget__columnheader">
                                <span data-bind="text: $data.name"></span>
                             </div>
                             <!-- ko foreach: $component.events -->
-                            
+
                     <div class="schedule-widget__event" draggable="true" data-bind="
                         style: {
-                            top: $component.getEventTopOffset($data), 
+                            top: $component.getEventTopOffset($data),
                             height: $component.getEventHeight($data)+'px'
-                        }, 
+                        },
                         attr: {
                             class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
                             id: $data.id && 'schedule-widget__event__'+$data.id
@@ -62,7 +62,7 @@
                         css: {
                             'schedule-widget__event--dirty': $data.isDirty
                         },
-                        event: { 
+                        event: {
                             contextmenu: $component.getContextMenuHandler($data),
                             dragstart: $component.handleDragStart,
                             dragend: $component.getDragEndHandler($component)
@@ -70,21 +70,21 @@
                         visible: isOnColumn($parent)">
                         <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                         <span class="schedule-widget__event__time">
-                            From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
+                            <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
                         </span>
                         <div class="schedule-widget__event__stateactions">
                             <a href="" class="schedule-widget__btn schedule-widget__btn--success" data-bind="click: $data.saveCurrentState"><i class="fa fa-save"></i></a>
                             <a href="" class="schedule-widget__btn schedule-widget__btn--warning" data-bind="click: $data.restorePrevState"><i class="fa fa-undo"></i></a>
                         </div>
-                    </div> 
-                    
-                            <!-- /ko -->
-                        </div>   
-                        <!-- /ko -->   
                     </div>
-                    
+
+                            <!-- /ko -->
+                        </div>
+                        <!-- /ko -->
+                    </div>
+
                     <!-- ko foreach: events -->
-                    
+
                     <div class="schedule-widget__event" data-bind="
                     visible: !$data.column,
                     style: {
@@ -114,16 +114,16 @@
     var contextualMenuItemIconDomElem = $('<span class="contextual-menu__item__icon"><i class="fa">');
 
     $(function(){
-        $(window).on('resize', () => {
+        $(window).on('resize', function(){
             contextualMenuDomElem.hide();
         });
-        $(window).on('scroll', () => {
+        $(window).on('scroll', function(){
             contextualMenuDomElem.hide();
         });
-        $('html').on('click', () => {
+        $('html').on('click', function(){
             contextualMenuDomElem.hide();
         });
-    })
+    });
 
     function pad(n, width, z) {
         z = z || '0';
@@ -135,16 +135,16 @@
         var start = time.split(':');
         var sum = 0;
         for(var i = start.length - 1; i >= 0; i--){
-            if(i == 3){
+            if(i === 3){
                 sum = sum + (parseFloat(start[i] / 36000));
             }
-            if(i == 2){
+            if(i === 2){
                 sum = sum + (parseFloat(start[i] / 3600));
             }
-            if(i == 1){
+            if(i === 1){
                 sum = sum + (parseFloat(start[i] / 60));
             }
-            if(i == 0){
+            if(i === 0){
                 sum = sum + parseFloat(start[i]);
             }
         }
@@ -158,7 +158,7 @@
         var seconds = parseFloat(parseFloat((decimal * 3600) % 60).toFixed(2)) % 60;
 
         // TODO: This pad mapping can be simplified by right currying the pad function with 2.
-        return [hours, minutes, seconds].map(function(n){return pad(n,2)}).join(':');
+        return [hours, minutes, seconds].map(function(n){return pad(n,2);}).join(':');
     }
 
     function getDateStr(date){
@@ -205,11 +205,11 @@
         }
     });
 
-    function Event(label, start, duration, date, category, column){
-        var prevState = ko.observable();
+    function Event(label, start, duration, date, category, column, onSave){
+        var prevState = ko.observableArray([]);
         var self = this;
         this.label = label;
-        this.category = category ? category : ko.observable('default')
+        this.category = category ? category : ko.observable('default');
         this.start = start;
         this.duration = duration;
         this.date = date;
@@ -220,22 +220,30 @@
             return this.column && column.name == this.column();
         };
         this.takeStateSnapshot = function(){
-            prevState(ko.toJS(this));
+            prevState.push(ko.toJS(this));
         };
-        this.onSave = function(){};
+        this.onSave = onSave;
         this.isDirty = ko.computed(function(){
-            if(prevState()){
-                if(self.column && self.column() != prevState().column) return true;
-            };
+            if(prevState() && prevState().length){
+                if(self.column && self.column() != prevState()[0].column) return true;
+            }
             return false;
         });
-        this.restorePrevState = function(){
-            self.column(prevState().column);
+        this.restorePrevState = function(clean){
+            var clean = (typeof clean != 'undefined') ? clean : false;
+            console.log(clean);
+            self.column((clean ? prevState()[0] : prevState.pop()).column);
+            if(clean){
+                prevState([]);
+            }
         };
         this.saveCurrentState = function(){
-            prevState(null);
-            self.onSave(self);
-        }
+            self.onSave(self).then(function(r){
+                if (r) {
+                    prevState([]);
+                }
+            });
+        };
     }
 
     function Column(name, id){
@@ -254,13 +262,9 @@
 
     function ViewModel() {
 
-        var _blocks;
         var _columns;
         var _columnsMapping = {};
         var _draggingEvent;
-
-
-        var d = new Date();
 
         var defaults = {
             block: ko.observable('00:30:00'),
@@ -271,31 +275,65 @@
             startDate: ko.observable(new Date()),
             columns: ko.observable([]),
             onDropEventOnColumn: function(){},
-            onSaveEvent: function(){}
+            onSaveEvent: function(){
+                var def = $.Deferred();
+                def.resolve(true);
+                return def;
+            }
         };
+        
+        function refreshOverlaps(obs){
+            if(obs()){
+                if(obs()){
+                    obs().map(function(ev){
+                        ev.overlaps = [];
+                    });
+                }
+                obs().map(function(ev){
+                    obs().map(function(e){
+                        if(
+                            (e != ev && (!ev.overlaps || ev.overlaps.indexOf(e) < 0)) 
+                            && 
+                            ((!e.column && !ev.column) || (e.column && ev.column && e.column() === ev.column()))
+                            &&
+                            (
+                                (timeToDecimal(ev.start()) > timeToDecimal(e.start()) && (timeToDecimal(ev.start()) + timeToDecimal(ev.duration())) > timeToDecimal(e.start()) + timeToDecimal(e.duration()))
+                                || 
+                                (timeToDecimal(e.start()) > timeToDecimal(ev.start()) && (timeToDecimal(e.start()) + timeToDecimal(e.duration())) > timeToDecimal(ev.start()) + timeToDecimal(ev.duration()))
+                            )
+                          )
+                        {
+                            ev.overlaps.push(e);
+                            e.overlaps.push(ev);
+                        }
+                    });
+                });
+            }
+        }
 
-        function getEventGeneratorFromObservableArray(observable){
+        function getEventGeneratorFromObservableArray(observable, options){
+
             return ko.computed(function(){
-                return (observable() && observable().map(function(ev){
+                var obs = (observable() && observable().map(function(ev){
+                   
                         if(!ev.duration && ev.end){
                             ev.duration = ko.observable(decimalToTime(timeToDecimal(ev.end()) - timeToDecimal(ev.start())));
                         }
-                        var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.category, ev.column);
+                        
+                        var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.category, ev.column, options.onSaveEvent);
                         if(ev.id != void 0){
-                            event.id = ev.id
+                            event.id = ev.id;
                         }
                         if(ev.item){
                             event.item = ev.item;
                         }
                         return event;
                     })) || [];
+                return obs;
             }, this);
         }
 
-
         function ScheduleWidgetViewModel(params) {
-            var self = this;
-
             this.eventsDefinition = params.events || ko.observableArray([]);
             this.infoEventsDefinition = params.info || ko.observableArray([]);
 
@@ -304,13 +342,12 @@
             this.start = this.options.start;
             this.columnsDefinition = this.options.columns;
             this.duration = this.options.duration;
-            this.events = getEventGeneratorFromObservableArray(this.eventsDefinition);
-            this.events().map(function(e){
-                e.onSave = self.options.onSaveEvent;
-            });
+            this.events = getEventGeneratorFromObservableArray(this.eventsDefinition, this.options);
+            
+            refreshOverlaps(this.events);
             this.getTimeBlocks = ko.computed(function() {
                 var blocks = [];
-                currentDate = moment(this.options.startDate()).add(-1, 'days');
+                var currentDate = moment(this.options.startDate()).add(-1, 'days');
 
                 var blockSize = timeToDecimal(this.options.block());
                 var startTime = timeToDecimal(this.start());
@@ -326,23 +363,23 @@
 
                     block.date = currentDate.format('YYYY-MM-DD');
 
-                    if((decimalToTime(hour) == this.options.dayStartsAt()) || blocks.length == 0){
+                    if((decimalToTime(hour) == this.options.dayStartsAt()) || blocks.length === 0){
                         block.displayDate = true;
                     }
                     block.id = currentDate.unix()+'_'+block.label;
                     blocks.push(block);
-                };
+                }
                 return blocks;
 
             }.bind(this));
-            this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition);
+            this.infoevents = getEventGeneratorFromObservableArray(this.infoEventsDefinition, this.options);
             this.getColumns = ko.computed(function(){
                 if(!_columns){
                     _columns = this.columnsDefinition().map(function(c,i){
                         var col = new Column(c.name, i);
                         _columnsMapping[c.name] = col;
                         return col;
-                    })
+                    });
                 }
                 return _columns;
             }.bind(this));
@@ -361,7 +398,7 @@
 
         ScheduleWidgetViewModel.prototype.handleDragStart = function(scheduleEvent,jsEvent){
             _draggingEvent = scheduleEvent;
-            if(!_draggingEvent.isDirty()){
+            if(true || !_draggingEvent.isDirty()){
                 _draggingEvent.takeStateSnapshot();
             }
             return true;
@@ -381,11 +418,12 @@
         ScheduleWidgetViewModel.prototype.getDragEndHandler = function(vm){
             return function(event, jsEvent){
                 if(event.isDirty()){
+                    refreshOverlaps(vm.events);
                     vm.options.onDropEventOnColumn(event);
                 }
                 _draggingEvent = null;
                 return true;
-            }
+            };
         };
 
         ScheduleWidgetViewModel.prototype.handleDrop = function(column, jsEvent){
@@ -400,11 +438,11 @@
                     var actions = self.contextMenuProvider(scheduleEvent);
                     contextualMenuDomElem.empty();
                     if(actions){
-                        actions.forEach(action => {
+                        actions.forEach(function(action){
                             var item = contextualMenuItemDomElem.clone();
                             var icon = contextualMenuItemIconDomElem.clone();
 
-                            item.bind('click', () => {
+                            item.bind('click', function(){
                                 contextualMenuDomElem.hide();
                                 action.action();
                             });
@@ -426,11 +464,11 @@
                             $('body').append(contextualMenuDomElem);
 
                         });
-                    };
+                    }
                     locateIntoView(contextualMenuDomElem);
                     contextualMenuDomElem.show();
                 }
-            }
+            };
         };
 
         ScheduleWidgetViewModel.prototype.getTopOffsetFromStartTime = function(time, date){
@@ -439,7 +477,7 @@
             var blockTime = timeToDecimal(this.options.block());
             var eventTime = timeToDecimal(time);
             var hourTime = timeToDecimal('01:00:00');
-            for(var i in blocks){
+            for (var i = 0; i < blocks.length; i++){
                 var blockDate = blocks[i].date;
                 if(blockDate != date){
                     count++;
@@ -459,7 +497,7 @@
             var hourTime = timeToDecimal('01:00:00');
             var height = (timeToDecimal(duration) * (Math.floor(hourTime / blockTime) * this.options.blockHeight()));
             return height > 1 ? height : 2;
-        }
+        };
 
         ScheduleWidgetViewModel.prototype.getEventTopOffset = function(ev){
             return this.getTopOffsetFromStartTime(ev.start(), ev.date());

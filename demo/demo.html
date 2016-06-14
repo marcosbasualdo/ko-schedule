@@ -25,7 +25,7 @@
                 {
                     id: 46,
                     label: ko.observable('Test event'),
-                    start: ko.observable('06:25:00'),
+                    start: ko.observable('05:25:00'),
                     duration: ko.observable('02:00:00'),
                     date: ko.observable(d),
                     column: ko.observable('Column 3')
@@ -53,10 +53,14 @@
                     {name: "Column 4"}
                 ]),
                 onDropEventOnColumn: function(event){
-                    console.log(event.column());
+                    if(event.overlaps && event.overlaps.length){
+                        event.restorePrevState();
+                    }
                 },
                 onSaveEvent: function(event){
-                    console.log('SAVEEE '+event.column());
+                    var d = $.Deferred();
+                    d.resolve(true);
+                    return d;
                 }
             };
             this.info = ko.observableArray([
