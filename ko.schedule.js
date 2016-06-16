@@ -136,7 +136,7 @@
         var sum = 0;
         for(var i = start.length - 1; i >= 0; i--){
             if(i === 3){
-                sum = sum + (parseFloat(start[i] / 36000));
+                sum = sum + (parseFloat(start[i] / 108000));
             }
             if(i === 2){
                 sum = sum + (parseFloat(start[i] / 3600));
@@ -155,10 +155,11 @@
 
         var hours = Math.floor(decimal % 60);
         var minutes = Math.floor(Math.floor((decimal * 60) % 60));
-        var seconds = parseFloat(parseFloat((decimal * 3600) % 60).toFixed(2)) % 60;
+        var seconds = Math.floor(parseFloat(parseFloat((decimal * 3600) % 60)) % 60);
+        var frames = Math.floor(parseFloat(parseFloat((decimal * 108000) % 30)) % 30);
 
         // TODO: This pad mapping can be simplified by right currying the pad function with 2.
-        return [hours, minutes, seconds].map(function(n){return pad(n,2);}).join(':');
+        return [hours, minutes, seconds, frames].map(function(n){return pad(n,2);}).join(':');
     }
 
     function getDateStr(date){
@@ -357,7 +358,7 @@
                     var hour = (s % 24);
                     var block = new TimeBlock(hour);
 
-                    if(decimalToTime(hour) == this.options.dayStartsAt()){
+                    if(decimalToTime(hour) == decimalToTime(timeToDecimal(this.options.dayStartsAt()))){
                         currentDate.add(1, 'days');
                     }
 
@@ -476,7 +477,7 @@
             var count = 0;
             var blockTime = timeToDecimal(this.options.block());
             var eventTime = timeToDecimal(time);
-            var hourTime = timeToDecimal('01:00:00');
+            var hourTime = timeToDecimal('01:00:00:00');
             for (var i = 0; i < blocks.length; i++){
                 var blockDate = blocks[i].date;
                 if(blockDate != date){
