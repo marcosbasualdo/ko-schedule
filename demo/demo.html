@@ -25,7 +25,7 @@
                 {
                     id: 46,
                     label: ko.observable('Test event'),
-                    start: ko.observable('05:25:00'),
+                    start: ko.observable('05:00:00'),
                     duration: ko.observable('02:00:00'),
                     date: ko.observable(d),
                     column: ko.observable('Column 3')
@@ -33,9 +33,19 @@
                 {
                     id: 47,
                     label: ko.observable('Another one'),
-                    start: ko.observable('23:30:00'),
-                    duration: ko.observable('01:00:00'),
-                    date: ko.observable(d)
+                    start: ko.observable('05:30:00'),
+                    duration: ko.observable('02:00:00'),
+                    date: ko.observable(d),
+                    column: ko.observable('Column 3')
+
+                },
+                {
+                    id: 47,
+                    label: ko.observable('Another one'),
+                    start: ko.observable('06:00:00'),
+                    duration: ko.observable('02:00:00'),
+                    date: ko.observable(d),
+                    column: ko.observable('Column 3')
 
                 },
             ]);
@@ -53,7 +63,7 @@
                     {name: "Column 4"}
                 ]),
                 onDropEventOnColumn: function(event){
-                    if(event.overlaps && event.overlaps.length){
+                    if(event.overlaps() && event.overlaps().length){
                         event.restorePrevState();
                     }
                 },
@@ -84,7 +94,8 @@
                     action: function(){
                         alert(ev.label())
                     },
-                    label: 'Alert event name'
+                    label: 'Show events',
+                    isMain: true
                 },
                 {
                     action: function(){

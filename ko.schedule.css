@@ -62,14 +62,15 @@
 }
 
 .schedule-widget__event {
-     background: rgb(220, 235, 252);
-     border: 1px solid #AFC9F0;
-     border-radius: 3px;
-     padding: 7px;
-     box-sizing: border-box;
-     position: absolute;
-     left: 10px;
-     right: 10px;
+    background: rgb(220, 235, 252);
+    border: 1px solid #AFC9F0;
+    border-radius: 3px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    min-height: 30px !important;
 }
 
 .schedule-widget__event:hover {
@@ -82,20 +83,63 @@
 }
 
 .schedule-widget__event--dirty .schedule-widget__event__time {
-    font-size: 11px;
-    float: right;
-    font-weight: normal;
     color: #CC3F3F;
 }
 
+.schedule-widget__btn-group {
+
+}
+
+.schedule-widget__btn-group .schedule-widget__btn {
+    float: left;
+}
+
+.schedule-widget__btn-group .schedule-widget__btn:first-child:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.schedule-widget__btn-group .schedule-widget__btn:not(:first-child):not(:last-child) {
+    border-radius: 0;
+    border-radius: 0;
+}
+
+.schedule-widget__btn-group .schedule-widget__btn:last-child:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.schedule-widget__btn-group .schedule-widget__btn + .schedule-widget__btn {
+    border-left:0;
+}
+
 .schedule-widget__btn {
-    border: 1px solid black;
+    border: 1px solid #9e9e9e;
     display: inline-block;
     padding: 0px 5px;
-    background: #ddd;
+    background: #ffffff; /* Old browsers */
+    background: -moz-linear-gradient(top,  #ffffff 0%, #e8e8e8 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#e8e8e8 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom,  #ffffff 0%,#e8e8e8 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e8e8e8',GradientType=0 ); /* IE6-9 */
     color: black;
     border-radius: 2px;
     font-size: 12px;
+    text-decoration: none;
+}
+
+.schedule-widget__btn--default:hover {
+    background: -moz-linear-gradient(top,  #ffffff 0%, #f2f2f2 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#f2f2f2 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom,  #ffffff 0%,#f2f2f2 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f2f2f2',GradientType=0 ); /* IE6-9 */
+}
+
+.schedule-widget__btn--default:active {
+    background: -moz-linear-gradient(bottom,  #ffffff 0%, #f2f2f2 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(bottom,  #ffffff 0%,#f2f2f2 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to top,  #ffffff 0%,#f2f2f2 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( endColorstr='#ffffff', startColorstr='#f2f2f2',GradientType=0 ); /* IE6-9 */
 }
 
 .schedule-widget__btn--success {
@@ -111,9 +155,7 @@
 }
 
 .schedule-widget__event--dirty .schedule-widget__event__label {
-    font-size: 14px;
     color: #CC3F3F;
-    font-weight: bold;
 }
 
 .schedule-widget__event__stateactions {
@@ -174,16 +216,21 @@ margin-top:-1px;
 }
 
 .schedule-widget__event__time {
-    font-size: 11px;
-    float: right;
+    font-size: 10px;
     font-weight: normal;
     color: #3577D9;
+    display: block;
 }
 
 .schedule-widget__event__label {
-    font-size: 14px;
+    font-size: 12px;
     color: #3577D9;
     font-weight: bold;
+    display: block;
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .contextual-menu {
@@ -266,4 +313,15 @@ margin-top:-1px;
     font-size: 14px;
     background: #213F68;
     color: white;
+}
+
+.schedule-widget__event__actions {
+    right: 1px;
+    position: absolute;
+    top: 1px;
+}
+
+.schedule-widget__event__actions .schedule-widget__btn {
+    font-size: 10px;
+    line-height: 12px;
 }

@@ -2,111 +2,119 @@
     ko.components.register('schedule', {
         viewModel: ViewModel(),
         template: `
-        <div class="schedule-widget">
-            <div class="schedule-widget__info"">
-                <!-- ko foreach: getTimeBlocks -->
-                <div class="schedule-widget__infoblock" data-bind="css: {'schedule-widget__infoblock--firstofdate': $data.displayDate}">
-                    <!-- ko if: $data.displayDate -->
-                    <span class="schedule-widget__date" data-bind="text: $component.getDateStr($data.date)"></span>
-                    <!-- /ko -->
-                </div>
-                <!-- /ko -->
-            </div>
-            <div class="schedule-widget__schedule">
-                <div class="schedule-widget__infoevents">
-                    <!-- ko foreach: infoevents -->
-                    <div class="schedule-widget__event schedule-widget__event--info" data-bind="style: {
-                        top: $component.getEventTopOffset($data),
-                        height: $component.getEventHeight($data)+'px'
-                    }, attr: {
-                        class: 'schedule-widget__event schedule-widget__event--info schedule-widget__event--category-'+$data.category().toLowerCase(),
-                        id: $data.id && 'schedule-widget__event__'+$data.id
-                    }">
-                        </span>
-                        <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
-                        <span class="schedule-widget__event__time">
-                            <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
-                        </span>
-                        <span data-bind="style:{'border-top-width': $component.getEventHeight($data) > 40 ? ($component.getEventHeight($data)-40)+'px' : 0}" class="schedule-widget__eventinfo__timearrow">
-                    </div>
-                    <!-- /ko -->
-                </div>
-                <div class="schedule-widget__background">
+            <div class="schedule-widget">
+                <div class="schedule-widget__info">
                     <!-- ko foreach: getTimeBlocks -->
-                    <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
-                        <span data-bind="text: $data.label"></span>
-                    </div>
-                    <!-- /ko -->
-                </div>
-                <div class="schedule-widget__events">
-                    <div class="schedule-widget__columns">
-                         <!-- ko foreach: getColumns -->
-                        <div class="schedule-widget__column" data-bind="
-                            style: {width: $component.getColumnsWidth()},
-                            attr: {id: $component.getColumnDomId($data)},
-                            event: {dragover: $component.handleDragOver,dragenter: $component.handleDragEnter,drop: $component.handleDrop}">
-                            <div class="schedule-widget__columnheader">
-                               <span data-bind="text: $data.name"></span>
-                            </div>
-                            <!-- ko foreach: $component.events -->
-
-                    <div class="schedule-widget__event" draggable="true" data-bind="
-                        style: {
-                            top: $component.getEventTopOffset($data),
-                            height: $component.getEventHeight($data)+'px'
-                        },
-                        attr: {
-                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
-                            id: $data.id && 'schedule-widget__event__'+$data.id
-                        },
-                        css: {
-                            'schedule-widget__event--dirty': $data.isDirty
-                        },
-                        event: {
-                            contextmenu: $component.getContextMenuHandler($data),
-                            dragstart: $component.handleDragStart,
-                            dragend: $component.getDragEndHandler($component)
-                        },
-                        visible: isOnColumn($parent)">
-                        <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
-                        <span class="schedule-widget__event__time">
-                            <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
-                        </span>
-                        <div class="schedule-widget__event__stateactions">
-                            <a href="" class="schedule-widget__btn schedule-widget__btn--success" data-bind="click: $data.saveCurrentState"><i class="fa fa-save"></i></a>
-                            <a href="" class="schedule-widget__btn schedule-widget__btn--warning" data-bind="click: $data.restorePrevState"><i class="fa fa-undo"></i></a>
-                        </div>
-                    </div>
-
+                        <div class="schedule-widget__infoblock" data-bind="css: {'schedule-widget__infoblock--firstofdate': $data.displayDate}">
+                            <!-- ko if: $data.displayDate -->
+                                <span class="schedule-widget__date" data-bind="text: $component.getDateStr($data.date)"></span>
                             <!-- /ko -->
                         </div>
-                        <!-- /ko -->
-                    </div>
-
-                    <!-- ko foreach: events -->
-
-                    <div class="schedule-widget__event" data-bind="
-                    visible: !$data.column,
-                    style: {
-                        top: $component.getEventTopOffset($data),
-                        height: $component.getEventHeight($data)+'px'
-                    },
-                    attr: {
-                        class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
-                        id: $data.id && 'schedule-widget__event__'+$data.id
-                    },
-                    event: {
-                        contextmenu: $component.getContextMenuHandler($data)
-                    }">
-                        <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
-                        <span class="schedule-widget__event__time">
-                            From <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
-                        </span>
-                    </div>
                     <!-- /ko -->
                 </div>
+                <div class="schedule-widget__schedule">
+                    <div class="schedule-widget__infoevents">
+                        <!-- ko foreach: infoevents -->
+                            <div class="schedule-widget__event schedule-widget__event--info" data-bind="style: {
+                            top: $component.getEventTopOffset($data),
+                            height: $component.getEventHeight($data)+'px'
+                            }, attr: {
+                            class: 'schedule-widget__event schedule-widget__event--info schedule-widget__event--category-'+$data.category().toLowerCase(),
+                            id: $data.id && 'schedule-widget__event__'+$data.id
+                            }">
+                                <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                                <span class="schedule-widget__event__time">
+                                    <span data-bind="text: $data.start"></span> to <span data-bind="text: $data.end"></span>
+                                </span>
+                                <span data-bind="style:{'border-top-width': $component.getEventHeight($data) > 40 ? ($component.getEventHeight($data)-40)+'px' : 0}" class="schedule-widget__eventinfo__timearrow"></span>
+                            </div>
+                        <!-- /ko -->
+                    </div>
+                    <div class="schedule-widget__background">
+                        <!-- ko foreach: getTimeBlocks -->
+                            <div class="schedule-widget__timeblock" data-bind="css: {'schedule-widget__timeblock--firstofdate': $data.displayDate}, attr: {id: $data.id && 'schedule-widget__event__'+$data.id}">
+                                <span data-bind="text: $data.label"></span>
+                            </div>
+                        <!-- /ko -->
+                    </div>
+                    <div class="schedule-widget__events">
+                        <div class="schedule-widget__columns">
+                            <!-- ko foreach: getColumns -->
+                                <div class="schedule-widget__column" data-bind="
+                                style: {width: $component.getColumnsWidth()},
+                                attr: {id: $component.getColumnDomId($data)},
+                                event: {dragover: $component.handleDragOver,dragenter: $component.handleDragEnter,drop: $component.handleDrop}">
+                                    <div class="schedule-widget__columnheader">
+                                        <span data-bind="text: $data.name"></span>
+                                    </div>
+                                    <!-- ko foreach: $component.events -->
+                                            <div class="schedule-widget__event" draggable="true" data-bind="
+                                            visible: isOnColumn($parent),
+                                            style: {
+                                            top: $component.getEventTopOffset($data), 
+                                            height: $component.getEventHeight($data)+'px',
+                                            }, 
+                                            attr: {
+                                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
+                                            id: $data.id && 'schedule-widget__event__'+$data.id,
+                                            title: $data.label,
+                                            'data-visible': isOnColumn($parent)
+                                            },
+                                            css: {
+                                            'schedule-widget__event--dirty': $data.isDirty
+                                            },
+                                            event: { 
+                                            contextmenu: $component.getContextMenuHandler($data),
+                                            dragstart: $component.handleDragStart,
+                                            dragend: $component.getDragEndHandler($component)
+                                            }">
+                                                <span class="schedule-widget__event__time">
+                                                <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
+                                                </span>
+                                                <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                                                <div class="schedule-widget__event__actions schedule-widget__btn-group">
+                                                    <!-- ko foreach: $component.getEventActions($data, true) -->
+                                                        <!-- ko if: $data.isMain -->
+                                                            <a href="" class="schedule-widget__btn schedule-widget__btn--default" data-bind="text: $data.label, click: $data.action">
+                                                            </a>
+                                                        <!-- /ko -->
+                                                    <!-- /ko -->
+                                                </div>
+                                                <div class="schedule-widget__event__stateactions">
+                                                    <a href="" class="schedule-widget__btn schedule-widget__btn--success" data-bind="click: $data.saveCurrentState"><i class="fa fa-save"></i></a>
+                                                    <a href="" class="schedule-widget__btn schedule-widget__btn--warning" data-bind="click: $data.restorePrevState"><i class="fa fa-undo"></i></a>
+                                                </div>
+                                            </div>  
+                                    <!-- /ko -->
+                                </div>
+                            <!-- /ko -->
+                        </div>
+            
+                        <!-- ko foreach: events -->
+                                <div class="schedule-widget__event" data-bind="
+                                visible: !$data.column,
+                                style: {
+                                top: $component.getEventTopOffset($data),
+                                height: $component.getEventHeight($data)+'px'
+                                },
+                                attr: {
+                                class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
+                                id: $data.id && 'schedule-widget__event__'+$data.id,
+                                title: $data.label
+                                },
+                                event: {
+                                contextmenu: $component.getContextMenuHandler($data)
+                                }">
+                                    <span class="schedule-widget__event__time">
+                                    <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
+                                    </span>
+                                    <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                                </div>
+                        <!-- /ko -->
+                    </div>
+                </div>
             </div>
-        </div>`
+        `
     });
 
     var contextualMenuDomElem = $('<ul class="contextual-menu">');
@@ -215,8 +223,11 @@
         this.duration = duration;
         this.date = date;
         this.column = column;
+        this.overlaps = ko.observableArray([]);
         this.id;
         this.item;
+        this.width = ko.observable(100);
+        this.left = ko.observable(0);
         this.isOnColumn = function(column){
             return this.column && column.name == this.column();
         };
@@ -232,7 +243,6 @@
         });
         this.restorePrevState = function(clean){
             var clean = (typeof clean != 'undefined') ? clean : false;
-            console.log(clean);
             self.column((clean ? prevState()[0] : prevState.pop()).column);
             if(clean){
                 prevState([]);
@@ -282,12 +292,14 @@
                 return def;
             }
         };
-        
+
+
         function refreshOverlaps(obs){
+
             if(obs()){
                 if(obs()){
                     obs().map(function(ev){
-                        ev.overlaps = [];
+                        ev.overlaps([]);
                     });
                 }
                 obs().map(function(ev){
@@ -298,9 +310,9 @@
                             ((!e.column && !ev.column) || (e.column && ev.column && e.column() === ev.column()))
                             &&
                             (
-                                (timeToDecimal(ev.start()) > timeToDecimal(e.start()) && (timeToDecimal(ev.start()) + timeToDecimal(ev.duration())) > timeToDecimal(e.start()) + timeToDecimal(e.duration()))
+                                (timeToDecimal(ev.start()) > timeToDecimal(e.start()) && (timeToDecimal(e.start()) + timeToDecimal(e.duration())) > timeToDecimal(ev.start()))
                                 || 
-                                (timeToDecimal(e.start()) > timeToDecimal(ev.start()) && (timeToDecimal(e.start()) + timeToDecimal(e.duration())) > timeToDecimal(ev.start()) + timeToDecimal(ev.duration()))
+                                (timeToDecimal(e.start()) > timeToDecimal(ev.start()) && (timeToDecimal(ev.start()) + timeToDecimal(ev.duration())) > timeToDecimal(e.start()))
                             )
                           )
                         {
@@ -309,6 +321,39 @@
                         }
                     });
                 });
+                /*
+                if(obs()){
+                    var ordered = obs();
+                    ordered.sort(function(a, b){
+                        return timeToDecimal(a.start()) - timeToDecimal(b.start());
+                    });
+                    ordered.map(function(e){
+                        var w = (100 / (e.overlaps().length + 1));
+                        e.width(w);
+                        e.overlaps().map(function(o){
+                            if(timeToDecimal(e.start()) < timeToDecimal(o.start())){
+                                if(e.left() == 0){
+                                    o.left(w);
+                                }else{
+                                    o.left(e.overlaps().reduce(function(a, b){
+                                        if(a > b.left()){
+                                            if(o.overlaps().indexOf(b) < 0){
+                                                return b.left();
+                                            }else{
+                                                return a;
+                                            }
+                                        }else{
+                                            return a + b.left();
+                                        }
+                                    }, w));
+                                }
+                            }
+                        });
+                        if(!e.overlaps().length){
+                            e.left(0);
+                        }
+                    });
+                }*/
             }
         }
 
@@ -399,9 +444,7 @@
 
         ScheduleWidgetViewModel.prototype.handleDragStart = function(scheduleEvent,jsEvent){
             _draggingEvent = scheduleEvent;
-            if(true || !_draggingEvent.isDirty()){
-                _draggingEvent.takeStateSnapshot();
-            }
+            _draggingEvent.takeStateSnapshot();
             return true;
         };
 
@@ -418,8 +461,8 @@
 
         ScheduleWidgetViewModel.prototype.getDragEndHandler = function(vm){
             return function(event, jsEvent){
+                refreshOverlaps(vm.events);
                 if(event.isDirty()){
-                    refreshOverlaps(vm.events);
                     vm.options.onDropEventOnColumn(event);
                 }
                 _draggingEvent = null;
@@ -431,6 +474,18 @@
             _draggingEvent = null;
             return true;
         };
+
+        ScheduleWidgetViewModel.prototype.getEventActions = function(scheduleEvent, withMain) {
+            var actions = [];
+            var withMain = withMain == void 0 ? true : withMain;
+            if(this.contextMenuProvider) {
+                actions = this.contextMenuProvider(scheduleEvent);
+            }
+            if(!withMain){
+                actions = actions.filter(function(a){return !a.isMain});
+            }
+            return actions;
+        }
 
         ScheduleWidgetViewModel.prototype.getContextMenuHandler = function(scheduleEvent){
             var self = this;
