@@ -389,6 +389,7 @@
             this.columnsDefinition = this.options.columns;
             this.duration = this.options.duration;
             this.events = getEventGeneratorFromObservableArray(this.eventsDefinition, this.options);
+            this.onApiReady = params.onApiReady || function(){};
             
             refreshOverlaps(this.events);
             this.getTimeBlocks = ko.computed(function() {
@@ -429,6 +430,12 @@
                 }
                 return _columns;
             }.bind(this));
+            
+            this.onApiReady({
+                events: this.events,
+                options: this.options,
+                info: this.infoevents
+            });
         }
 
         ScheduleWidgetViewModel.prototype.getDateStr = getDateStr;

@@ -42,7 +42,7 @@
                 {
                     id: 47,
                     label: ko.observable('Another one'),
-                    start: ko.observable('06:00:00'),
+                    start: ko.observable('06:30:00'),
                     duration: ko.observable('02:00:00'),
                     date: ko.observable(d),
                     column: ko.observable('Column 3')
@@ -64,7 +64,7 @@
                 ]),
                 onDropEventOnColumn: function(event){
                     if(event.overlaps() && event.overlaps().length){
-                        event.restorePrevState();
+                        //event.restorePrevState();
                     }
                 },
                 onSaveEvent: function(event){
@@ -105,6 +105,9 @@
                     faIcon: 'google'
                 }];
             }
+            this.onApiReady = function(api){
+               window.scheduleApi = api; 
+            }
         }
         var vm = new DemoViewModel();
         $(function(){
@@ -115,7 +118,7 @@
 </head>
 <body>
 
-<schedule params="events: events, options: options, contextMenuProvider: contextMenuProvider"></schedule>
+<schedule params="events: events, options: options, contextMenuProvider: contextMenuProvider, onApiReady: onApiReady"></schedule>
 
 </body>
 </html>
