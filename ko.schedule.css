@@ -220,6 +220,7 @@ margin-top:-1px;
     font-weight: normal;
     color: #3577D9;
     display: block;
+    line-height: 13px;
 }
 
 .schedule-widget__event__label {
@@ -231,6 +232,7 @@ margin-top:-1px;
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 16px;
 }
 
 .contextual-menu {
