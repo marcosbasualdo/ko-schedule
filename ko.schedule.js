@@ -321,7 +321,7 @@
                         }
                     });
                 });
-                /*
+
                 if(obs()){
                     var ordered = obs();
                     ordered.sort(function(a, b){
@@ -353,7 +353,7 @@
                             e.left(0);
                         }
                     });
-                }*/
+                }
             }
         }
 
