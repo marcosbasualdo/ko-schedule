@@ -296,7 +296,6 @@
 
 
         function refreshOverlaps(obs){
-
             if(obs()){
                 if(obs()){
                     obs().map(function(ev){
@@ -400,6 +399,7 @@
         }
 
         function ScheduleWidgetViewModel(params) {
+            var self = this;
             this.eventsDefinition = params.events || ko.observableArray([]);
             this.infoEventsDefinition = params.info || ko.observableArray([]);
 
@@ -450,7 +450,13 @@
                 }
                 return _columns;
             }.bind(this));
-            
+
+            this.events().map(function(e){
+                e.column.subscribe(function(){
+                    refreshOverlaps(self.events);
+                });
+            });
+
             this.onApiReady({
                 events: this.events,
                 options: this.options,
@@ -488,7 +494,6 @@
 
         ScheduleWidgetViewModel.prototype.getDragEndHandler = function(vm){
             return function(event, jsEvent){
-                refreshOverlaps(vm.events);
                 if(event.isDirty()){
                     vm.options.onDropEventOnColumn(event);
                 }
