@@ -18,36 +18,10 @@
                     id: 44,
                     label: ko.observable('My test event'),
                     start: ko.observable('04:30:00'),
-                    duration: ko.observable('02:00:00'),
+                    duration: ko.observable('02:00:00:15'),
                     date: ko.observable(d),
                     column: ko.observable('My column 1')
-                },
-                {
-                    id: 46,
-                    label: ko.observable('Test event'),
-                    start: ko.observable('05:00:00'),
-                    duration: ko.observable('02:00:00'),
-                    date: ko.observable(d),
-                    column: ko.observable('Column 3')
-                },
-                {
-                    id: 47,
-                    label: ko.observable('Another one'),
-                    start: ko.observable('05:30:00'),
-                    duration: ko.observable('02:00:00'),
-                    date: ko.observable(d),
-                    column: ko.observable('Column 3')
-
-                },
-                {
-                    id: 47,
-                    label: ko.observable('Another one'),
-                    start: ko.observable('06:30:00'),
-                    duration: ko.observable('02:00:00'),
-                    date: ko.observable(d),
-                    column: ko.observable('Column 3')
-
-                },
+                }
             ]);
             this.options = {
                 block: ko.observable('00:30:00'),
@@ -64,7 +38,7 @@
                 ]),
                 onDropEventOnColumn: function(event){
                     if(event.overlaps() && event.overlaps().length){
-                        //event.restorePrevState();
+                        event.restorePrevState();
                     }
                 },
                 onSaveEvent: function(event){

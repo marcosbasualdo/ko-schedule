@@ -53,15 +53,14 @@
                                             style: {
                                             top: $component.getEventTopOffset($data), 
                                             height: $component.getEventHeight($data)+'px',
+                                            width: $data.width()+'%',
+                                            left: $data.left()+'%'
                                             }, 
                                             attr: {
-                                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
+                                            class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase()+($data.isDirty() ? ' schedule-widget__event--dirty': ''),
                                             id: $data.id && 'schedule-widget__event__'+$data.id,
                                             title: $data.label,
                                             'data-visible': isOnColumn($parent)
-                                            },
-                                            css: {
-                                            'schedule-widget__event--dirty': $data.isDirty
                                             },
                                             event: { 
                                             contextmenu: $component.getContextMenuHandler($data),
@@ -237,7 +236,9 @@
         this.onSave = onSave;
         this.isDirty = ko.computed(function(){
             if(prevState() && prevState().length){
-                if(self.column && self.column() != prevState()[0].column) return true;
+                if(self.column() != prevState()[0].column){
+                    return true;
+                }
             }
             return false;
         });
@@ -310,9 +311,9 @@
                             ((!e.column && !ev.column) || (e.column && ev.column && e.column() === ev.column()))
                             &&
                             (
-                                (timeToDecimal(ev.start()) > timeToDecimal(e.start()) && (timeToDecimal(e.start()) + timeToDecimal(e.duration())) > timeToDecimal(ev.start()))
+                                (timeToDecimal(ev.start()) >= timeToDecimal(e.start()) && (timeToDecimal(e.start()) + timeToDecimal(e.duration())) > timeToDecimal(ev.start()))
                                 || 
-                                (timeToDecimal(e.start()) > timeToDecimal(ev.start()) && (timeToDecimal(ev.start()) + timeToDecimal(ev.duration())) > timeToDecimal(e.start()))
+                                (timeToDecimal(e.start()) >= timeToDecimal(ev.start()) && (timeToDecimal(ev.start()) + timeToDecimal(ev.duration())) > timeToDecimal(e.start()))
                             )
                           )
                         {
@@ -321,12 +322,13 @@
                         }
                     });
                 });
-                /*
+                
                 if(obs()){
                     var ordered = obs();
                     ordered.sort(function(a, b){
                         return timeToDecimal(a.start()) - timeToDecimal(b.start());
                     });
+                   
                     ordered.map(function(e){
                         var w = (100 / (e.overlaps().length + 1));
                         e.width(w);
@@ -353,7 +355,25 @@
                             e.left(0);
                         }
                     });
-                }*/
+                    
+                   /*
+                   for(var i = 0, l = ordered.length;i<l;i++){
+                       var ev = ordered[i];
+                       var overlapped = false;
+                       ordered.slice(0,i).forEach(function(p){
+                         if(ev.overlaps().indexOf(p) > -1){
+                             overlapped = true;
+                             var width = 100 / (Math.round((100 / p.width())) + 1);
+                             p.width(width);
+                             ev.width(width);
+                         }
+                       });
+                       if(!overlapped){
+                           ev.width(100);
+                       }
+                   }
+                    */
+                }
             }
         }
 
