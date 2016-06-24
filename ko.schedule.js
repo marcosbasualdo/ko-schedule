@@ -72,7 +72,7 @@
                                                 </span>
                                                 <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                                                 <div class="schedule-widget__event__actions schedule-widget__btn-group">
-                                                    <!-- ko foreach: $component.getEventActions($data, true) -->
+                                                    <!-- ko foreach: $component.getEventActions($data) -->
                                                         <!-- ko if: $data.isMain -->
                                                             <a href="" class="schedule-widget__btn schedule-widget__btn--default" data-bind="text: $data.label, click: $data.action">
                                                             </a>
@@ -94,7 +94,9 @@
                                 visible: !$data.column,
                                 style: {
                                 top: $component.getEventTopOffset($data),
-                                height: $component.getEventHeight($data)+'px'
+                                height: $component.getEventHeight($data)+'px',
+                                width: $data.width()+'%',
+                                left: $data.left()+'%'
                                 },
                                 attr: {
                                 class: 'schedule-widget__event schedule-widget__event--category-'+$data.category().toLowerCase(),
@@ -108,6 +110,14 @@
                                     <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
                                     </span>
                                     <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
+                                    <div class="schedule-widget__event__actions schedule-widget__btn-group">
+                                        <!-- ko foreach: $component.getEventActions($data) -->
+                                            <!-- ko if: $data.isMain -->
+                                                <a href="" class="schedule-widget__btn schedule-widget__btn--default" data-bind="text: $data.label, click: $data.action">
+                                                </a>
+                                            <!-- /ko -->
+                                        <!-- /ko -->
+                                    </div>
                                 </div>
                         <!-- /ko -->
                     </div>
@@ -334,7 +344,7 @@
                         var w = (100 / (e.overlaps().length + 1));
                         e.width(w);
                         e.overlaps().map(function(o){
-                            if(timeToDecimal(e.start()) < timeToDecimal(o.start())){
+                            if(timeToDecimal(e.start()) <= timeToDecimal(o.start())){
                                 if(e.left() == 0){
                                     o.left(w);
                                 }else{
@@ -452,13 +462,25 @@
                 }
                 return _columns;
             }.bind(this));
-
-            this.events().map(function(e){
-                e.column.subscribe(function(){
-                    refreshOverlaps(self.events);
+            
+            this.events.subscribe(function(evs){
+                evs.map(function(e){
+                    if(e.column){
+                        e.column.subscribe(function(){
+                            refreshOverlaps(self.events);
+                        });
+                    }
                 });
             });
 
+            this.events().map(function(e){
+                if(e.column){
+                    e.column.subscribe(function(){
+                        refreshOverlaps(self.events);
+                    });
+                }
+            });
+            
             this.onApiReady({
                 events: this.events,
                 options: this.options,
@@ -509,14 +531,10 @@
             return true;
         };
 
-        ScheduleWidgetViewModel.prototype.getEventActions = function(scheduleEvent, withMain) {
+        ScheduleWidgetViewModel.prototype.getEventActions = function(scheduleEvent) {
             var actions = [];
-            var withMain = withMain == void 0 ? true : withMain;
             if(this.contextMenuProvider) {
                 actions = this.contextMenuProvider(scheduleEvent);
-            }
-            if(!withMain){
-                actions = actions.filter(function(a){return !a.isMain});
             }
             return actions;
         }
