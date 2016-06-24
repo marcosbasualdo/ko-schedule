@@ -300,6 +300,8 @@
                 if(obs()){
                     obs().map(function(ev){
                         ev.overlaps([]);
+                        ev.left(0);
+                        ev.width(100);
                     });
                 }
                 obs().map(function(ev){
