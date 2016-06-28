@@ -67,8 +67,15 @@
                                             dragstart: $component.handleDragStart,
                                             dragend: $component.getDragEndHandler($component)
                                             }">
-                                                <span class="schedule-widget__event__time">
-                                                <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
+                                                <span class="schedule-widget__event__time">                                                
+                                                    <span data-bind="text: $data.start"></span> 
+                                                    - 
+                                                    <!-- ko ifnot: $data.overridedEnd -->
+                                                        <span data-bind="text: $data.end"></span>
+                                                    <!-- /ko -->
+                                                    <!-- ko if: $data.overridedEnd -->
+                                                        <span data-bind="text: $data.overridedEnd"></span>
+                                                    <!-- /ko -->
                                                 </span>
                                                 <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                                                 <div class="schedule-widget__event__actions schedule-widget__btn-group">
@@ -107,7 +114,14 @@
                                 contextmenu: $component.getContextMenuHandler($data)
                                 }">
                                     <span class="schedule-widget__event__time">
-                                    <span data-bind="text: $data.start"></span> - <span data-bind="text: $data.end"></span>
+                                        <span data-bind="text: $data.start"></span> 
+                                        - 
+                                        <!-- ko ifnot: $data.overridedEnd -->
+                                            <span data-bind="text: $data.end"></span>
+                                        <!-- /ko -->
+                                        <!-- ko if: $data.overridedEnd -->
+                                            <span data-bind="text: $data.overridedEnd"></span>
+                                        <!-- /ko -->
                                     </span>
                                     <span data-bind="text: $data.label" class="schedule-widget__event__label"></span>
                                     <div class="schedule-widget__event__actions schedule-widget__btn-group">
@@ -228,13 +242,14 @@
         var self = this;
         this.label = label;
         this.category = category ? category : ko.observable('default');
-        this.start = start;
+        this.start = ko.observable(start ? decimalToTime(timeToDecimal(start())) : undefined);
         this.duration = duration;
         this.date = date;
         this.column = column;
         this.overlaps = ko.observableArray([]);
         this.id;
         this.item;
+        this.overridedEnd = ko.observable();
         this.width = ko.observable(100);
         this.left = ko.observable(0);
         this.isOnColumn = function(column){
@@ -278,7 +293,7 @@
             var endTime = decimalToTime(timeToDecimal(this.start()) + timeToDecimal(this.duration()));
             endTime = endTime.split(':');
             endTime = [parseInt(endTime.shift()) % 24].concat(endTime).join(':');
-            return endTime;
+            return decimalToTime(timeToDecimal(endTime));
         }
     });
 
@@ -392,12 +407,21 @@
 
             return ko.computed(function(){
                 var obs = (observable() && observable().map(function(ev){
-                   
+
+                        var overridedEnd = false;
+                        if(ev.duration && ev.end){
+                            overridedEnd = true;
+                        }
+
                         if(!ev.duration && ev.end){
                             ev.duration = ko.observable(decimalToTime(timeToDecimal(ev.end()) - timeToDecimal(ev.start())));
                         }
                         
                         var event = new Event(ev.label, ev.start, ev.duration, ev.date, ev.category, ev.column, options.onSaveEvent);
+
+                        if(overridedEnd){
+                            event.overridedEnd(decimalToTime(timeToDecimal(ev.end())));
+                        }
                         if(ev.id != void 0){
                             event.id = ev.id;
                         }
