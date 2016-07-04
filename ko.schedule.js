@@ -67,7 +67,7 @@
                                             dragstart: $component.handleDragStart,
                                             dragend: $component.getDragEndHandler($component)
                                             }">
-                                                <span class="schedule-widget__event__time">                                                
+                                                <span class="schedule-widget__event__time" data-bind="attr: {title: $data.start() + ' - ' + $data.end}">                                                
                                                     <span data-bind="text: $data.start"></span> 
                                                     - 
                                                     <!-- ko ifnot: $data.overridedEnd -->
@@ -113,7 +113,7 @@
                                 event: {
                                 contextmenu: $component.getContextMenuHandler($data)
                                 }">
-                                    <span class="schedule-widget__event__time">
+                                    <span class="schedule-widget__event__time" data-bind="attr: {title: $data.start() + ' - ' + $data.end}">
                                         <span data-bind="text: $data.start"></span> 
                                         - 
                                         <!-- ko ifnot: $data.overridedEnd -->

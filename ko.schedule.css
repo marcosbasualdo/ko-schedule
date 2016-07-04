@@ -73,6 +73,10 @@
     min-height: 30px !important;
 }
 
+.schedule-widget__event.schedule-widget__event--info {
+    min-height: 5px !important;
+}
+
 .schedule-widget__event:hover {
     z-index: 1;
 }
@@ -221,6 +225,10 @@ margin-top:-1px;
     color: #3577D9;
     display: block;
     line-height: 13px;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .schedule-widget__event__label {
