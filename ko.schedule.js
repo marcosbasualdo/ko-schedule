@@ -321,16 +321,15 @@
 
 
         function refreshOverlaps(obs){
-            if(obs()){
-                if(obs()){
-                    obs().map(function(ev){
-                        ev.overlaps([]);
-                        ev.left(0);
-                        ev.width(100);
-                    });
-                }
-                obs().map(function(ev){
-                    obs().map(function(e){
+            var events = typeof obs == 'function' ? obs() : obs;
+            if(events){
+                events.map(function(ev){
+                    ev.overlaps([]);
+                    ev.left(0);
+                    ev.width(100);
+                });
+                events.map(function(ev){
+                    events.map(function(e){
                         if(
                             (e != ev && (!ev.overlaps || ev.overlaps.indexOf(e) < 0)) 
                             && 
@@ -348,59 +347,41 @@
                         }
                     });
                 });
-                
-                if(obs()){
-                    var ordered = obs();
-                    ordered.sort(function(a, b){
-                        return timeToDecimal(a.start()) - timeToDecimal(b.start());
-                    });
-                   
-                    ordered.map(function(e){
-                        var w = (100 / (e.overlaps().length + 1));
-                        e.width(w);
-                        e.overlaps().map(function(o){
-                            if(timeToDecimal(e.start()) <= timeToDecimal(o.start())){
-                                if(e.left() == 0){
-                                    o.left(w);
-                                }else{
-                                    o.left(e.overlaps().reduce(function(a, b){
-                                        if(a > b.left()){
-                                            if(o.overlaps().indexOf(b) < 0){
-                                                return b.left();
-                                            }else{
-                                                return a;
-                                            }
+
+                var ordered = events;
+                ordered.sort(function(a, b){
+                    return timeToDecimal(a.start()) - timeToDecimal(b.start());
+                });
+
+                ordered.map(function(e){
+                    var w = (100 / (e.overlaps().length + 1));
+                    e.width(w);
+                    e.overlaps().map(function(o){
+                        if(timeToDecimal(e.start()) <= timeToDecimal(o.start())){
+                            if(e.left() == 0){
+                                o.left(w);
+                            }else{
+                                o.left(e.overlaps().reduce(function(a, b){
+                                    if(a > b.left()){
+                                        if(o.overlaps().indexOf(b) < 0){
+                                            return b.left();
                                         }else{
-                                            return a + b.left();
+                                            return a;
                                         }
-                                    }, w));
-                                }
+                                    }else{
+                                        return a + b.left();
+                                    }
+                                }, w));
                             }
-                        });
-                        if(!e.overlaps().length){
-                            e.left(0);
                         }
                     });
-                    
-                   /*
-                   for(var i = 0, l = ordered.length;i<l;i++){
-                       var ev = ordered[i];
-                       var overlapped = false;
-                       ordered.slice(0,i).forEach(function(p){
-                         if(ev.overlaps().indexOf(p) > -1){
-                             overlapped = true;
-                             var width = 100 / (Math.round((100 / p.width())) + 1);
-                             p.width(width);
-                             ev.width(width);
-                         }
-                       });
-                       if(!overlapped){
-                           ev.width(100);
-                       }
-                   }
-                    */
-                }
+                    if(!e.overlaps().length){
+                        e.left(0);
+                    }
+                });
+                
             }
+            
         }
 
         function getEventGeneratorFromObservableArray(observable, options){
@@ -488,6 +469,7 @@
             }.bind(this));
             
             this.events.subscribe(function(evs){
+                refreshOverlaps(evs);
                 evs.map(function(e){
                     if(e.column){
                         e.column.subscribe(function(){
